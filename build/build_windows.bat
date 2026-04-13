@@ -41,12 +41,22 @@ for /f "delims=" %%V in ('python --version 2^>^&1') do echo [OK] %%V
 set "ISCC="
 if exist "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" set "ISCC=C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 if exist "C:\Program Files\Inno Setup 6\ISCC.exe"       set "ISCC=C:\Program Files\Inno Setup 6\ISCC.exe"
+rem  Fallback: search PATH (works if Inno Setup added itself to PATH)
 if "!ISCC!"=="" (
-    echo [ERROR] Inno Setup 6 not found.
+    for /f "delims=" %%P in ('where ISCC 2^>nul') do set "ISCC=%%P"
+)
+rem  Fallback: search common install roots for any Inno Setup version folder
+if "!ISCC!"=="" (
+    for /d %%D in ("C:\Program Files (x86)\Inno Setup*" "C:\Program Files\Inno Setup*") do (
+        if exist "%%D\ISCC.exe" set "ISCC=%%D\ISCC.exe"
+    )
+)
+if "!ISCC!"=="" (
+    echo [ERROR] Inno Setup not found.
     echo         Install from: https://jrsoftware.org/isinfo.php
     exit /b 1
 )
-echo [OK] Inno Setup found
+echo [OK] Inno Setup: !ISCC!
 
 echo.
 
