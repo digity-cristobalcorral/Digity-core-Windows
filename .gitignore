@@ -27,7 +27,8 @@ Thumbs.db
 .idea/
 *.swp
 
-# Windows build artifacts
+# Windows build artifacts — large binaries, never commit
+build/dist/
 build/prereqs/
 build/output/
 
