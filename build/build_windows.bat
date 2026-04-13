@@ -41,22 +41,16 @@ for /f "delims=" %%V in ('python --version 2^>^&1') do echo [OK] %%V
 set "ISCC="
 if exist "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" set "ISCC=C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 if exist "C:\Program Files\Inno Setup 6\ISCC.exe"       set "ISCC=C:\Program Files\Inno Setup 6\ISCC.exe"
-rem  Fallback: search PATH (works if Inno Setup added itself to PATH)
+if "!ISCC!"=="" for /f "delims=" %%P in ('where ISCC 2^>nul') do set "ISCC=%%P"
+if "!ISCC!"=="" for /d %%D in ("C:\Program Files (x86)\Inno Setup*" "C:\Program Files\Inno Setup*") do if exist "%%D\ISCC.exe" set "ISCC=%%D\ISCC.exe"
 if "!ISCC!"=="" (
-    for /f "delims=" %%P in ('where ISCC 2^>nul') do set "ISCC=%%P"
+    echo [!] Inno Setup not found automatically — will skip compile step.
+    echo     After this script finishes, open Inno Setup and compile manually:
+    echo       File: %SCRIPT_DIR%installer.iss
+    echo       Then: Build ^> Compile
+) else (
+    echo [OK] Inno Setup: !ISCC!
 )
-rem  Fallback: search common install roots for any Inno Setup version folder
-if "!ISCC!"=="" (
-    for /d %%D in ("C:\Program Files (x86)\Inno Setup*" "C:\Program Files\Inno Setup*") do (
-        if exist "%%D\ISCC.exe" set "ISCC=%%D\ISCC.exe"
-    )
-)
-if "!ISCC!"=="" (
-    echo [ERROR] Inno Setup not found.
-    echo         Install from: https://jrsoftware.org/isinfo.php
-    exit /b 1
-)
-echo [OK] Inno Setup: !ISCC!
 
 echo.
 
@@ -110,14 +104,27 @@ copy "%SCRIPT_DIR%launch.bat" "%DIST_DIR%\" >nul
 if %ERRORLEVEL% NEQ 0 (echo [ERROR] File copy failed & exit /b 1)
 
 rem ── Step 5: Compile installer ─────────────────────────────────────────────────
-echo [5/5] Compiling installer...
 if not exist "%SCRIPT_DIR%output" mkdir "%SCRIPT_DIR%output"
-"!ISCC!" "%SCRIPT_DIR%installer.iss"
-if %ERRORLEVEL% NEQ 0 (echo [ERROR] Inno Setup failed & exit /b 1)
-
-echo.
-echo   ============================================
-echo     Build complete!
-echo     Installer: build\output\DigityCore-Setup-1.0.0.exe
-echo   ============================================
-echo.
+if "!ISCC!"=="" (
+    echo.
+    echo   ============================================
+    echo     Files ready — compile manually in Inno Setup
+    echo   ============================================
+    echo.
+    echo   1. Open Inno Setup
+    echo   2. File ^> Open ^> %SCRIPT_DIR%installer.iss
+    echo   3. Build ^> Compile
+    echo.
+    echo   Output will be: build\output\DigityCore-Setup-1.0.0.exe
+    echo.
+) else (
+    echo [5/5] Compiling installer...
+    "!ISCC!" "%SCRIPT_DIR%installer.iss"
+    if %ERRORLEVEL% NEQ 0 (echo [ERROR] Inno Setup failed & exit /b 1)
+    echo.
+    echo   ============================================
+    echo     Build complete!
+    echo     Installer: build\output\DigityCore-Setup-1.0.0.exe
+    echo   ============================================
+    echo.
+)
