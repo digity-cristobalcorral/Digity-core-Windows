@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digity</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+
+:root {
+  --bg:        #111827;
+  --surface:   #1f2937;
+  --surface2:  #2d3748;
+  --border:    #374151;
+  --border2:   #4b5563;
+  --text:      #f3f4f6;
+  --muted:     #9ca3af;
+  --muted2:    #d1d5db;
+  --accent:    #38bdf8;
+  --green:     #34d399;
+  --red:       #fb7185;
+  --yellow:    #fbbf24;
+  --blue:      #60a5fa;
+  --radius:    8px;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Topbar ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 56px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #1a2233 0%, var(--surface) 100%);
+  flex-shrink: 0;
+  box-shadow: 0 1px 0 rgba(255,255,255,.04);
+}
+.topbar-left  { display: flex; align-items: center; gap: 32px; }
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 14px; letter-spacing: 0.04em;
+  color: var(--text);
+}
+.brand-icon {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--accent), #6366f1);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+}
+.brand-icon svg { width: 16px; height: 16px; fill: #fff; }
+.brand-name { letter-spacing: 0.06em; }
+.brand-ver { font-size: 10px; color: var(--muted); font-weight: 400; margin-left: 2px; }
+
+.topbar-nav { display: flex; gap: 2px; }
+.nav-link {
+  color: var(--muted2);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 6px;
+  transition: all .15s;
+  letter-spacing: 0.02em;
+}
+.nav-link:hover { color: var(--text); background: rgba(255,255,255,.07); }
+.nav-link.active { color: var(--text); background: rgba(255,255,255,.1); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+
+.sys-clock {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted2);
+  letter-spacing: 0.04em;
+}
+.conn-badge {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(16,185,129,.1);
+  border: 1px solid rgba(16,185,129,.2);
+  font-size: 11px; font-weight: 600;
+  color: var(--green);
+  letter-spacing: 0.04em;
+}
+.conn-badge .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+.conn-badge.disconnected {
+  background: rgba(244,63,94,.08);
+  border-color: rgba(244,63,94,.2);
+  color: var(--red);
+}
+.conn-badge.disconnected .dot { background: var(--red); }
+
+.zmq-subs-badge {
+  display: none;
+  align-items: center; gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(14,165,233,.08);
+  border: 1px solid rgba(14,165,233,.15);
+  font-size: 11px; font-weight: 600;
+  color: var(--muted2);
+  letter-spacing: 0.04em;
+  transition: all .2s;
+}
+.zmq-subs-badge.active {
+  background: rgba(14,165,233,.12);
+  border-color: rgba(14,165,233,.35);
+  color: var(--accent);
+}
+.zmq-subs-badge .dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--muted);
+  transition: all .2s;
+}
+.zmq-subs-badge.active .dot {
+  background: var(--accent);
+  box-shadow: 0 0 5px rgba(14,165,233,.7);
+}
+
+/* ── Layout ── */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  grid-template-rows: auto 1fr;
+  gap: 1px;
+  flex: 1;
+  min-height: 0;
+  background: var(--border);
+}
+.panel {
+  background: var(--bg);
+  padding: 22px 26px;
+}
+.panel-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.panel-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+}
+
+/* ── Recording ── */
+.record-panel {
+  grid-column: 1;
+  grid-row: 1;
+}
+.record-layout {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+}
+
+.rec-button-area { flex-shrink: 0; }
+.rec-btn {
+  width: 76px; height: 76px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  gap: 2px;
+  transition: transform .12s, box-shadow .2s;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  position: relative;
+  outline: none;
+}
+.rec-btn.start {
+  background: radial-gradient(circle at 40% 35%, #15e889, #0d9e62);
+  border-color: rgba(16,185,129,.4);
+  color: #001a0e;
+  box-shadow: 0 0 0 0 rgba(16,185,129,.4), 0 4px 20px rgba(16,185,129,.3);
+}
+.rec-btn.start:hover  { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(16,185,129,.12), 0 4px 24px rgba(16,185,129,.4); }
+.rec-btn.start:active { transform: scale(0.97); }
+.rec-btn.stop {
+  background: radial-gradient(circle at 40% 35%, #ff5f79, #c8213e);
+  border-color: rgba(244,63,94,.4);
+  color: #fff;
+  box-shadow: 0 0 0 0 rgba(244,63,94,.4), 0 4px 20px rgba(244,63,94,.25);
+}
+.rec-btn.stop:hover  { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(244,63,94,.12), 0 4px 24px rgba(244,63,94,.4); }
+.rec-btn.stop:active { transform: scale(0.97); }
+.rec-btn .rec-icon { width: 20px; height: 20px; }
+.rec-btn.stop .rec-icon { width: 16px; height: 16px; }
+.rec-btn .rec-label { font-size: 9px; font-weight: 800; letter-spacing: 0.12em; margin-top: 1px; }
+
+.rec-info { flex: 1; }
+.rec-status-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 4px;
+}
+.rec-state-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--muted);
+  transition: background .3s;
+}
+.rec-state-dot.recording { background: var(--red); animation: blink 1.2s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.rec-state-label { font-size: 11px; font-weight: 600; color: var(--muted2); text-transform: uppercase; letter-spacing: 0.08em; }
+.rec-state-label.recording { color: var(--red); }
+
+.rec-timer {
+  font-family: var(--font-mono);
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+.rec-timer.recording { color: #fff; text-shadow: 0 0 30px rgba(52,211,153,.3); }
+
+.meta-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.meta-field { display: flex; flex-direction: column; gap: 4px; }
+.meta-label {
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.meta-field input, .meta-field select {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 7px 11px;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  min-width: 110px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.meta-field input:focus, .meta-field select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(56,189,248,.12);
+}
+.meta-field select option { background: #1f2937; }
+
+/* ── Services ── */
+.services-panel {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+}
+.svc-legend {
+  display: flex; gap: 16px; margin-bottom: 14px; align-items: center;
+}
+.svc-legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+.legend-pip { width: 7px; height: 7px; border-radius: 50%; }
+
+.svc-list { display: flex; flex-direction: column; gap: 2px; }
+
+.svc-row {
+  display: grid;
+  grid-template-columns: 20px 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  transition: border-color .15s, background .15s, box-shadow .15s;
+  cursor: default;
+}
+.svc-row:hover { background: var(--surface2); border-color: var(--border2); box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+
+.svc-pips {
+  display: flex; flex-direction: column; gap: 4px; align-items: center;
+}
+.svc-pip, .hw-pip {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--border2);
+  transition: background .25s, box-shadow .25s;
+  flex-shrink: 0;
+}
+.svc-pip.running  { background: var(--green); box-shadow: 0 0 5px rgba(16,185,129,.6); }
+.svc-pip.error    { background: var(--red);   box-shadow: 0 0 5px rgba(244,63,94,.6); }
+.svc-pip.starting { background: var(--yellow); animation: blink .8s infinite; }
+.hw-pip.connected    { background: var(--blue); box-shadow: 0 0 5px rgba(59,130,246,.6); }
+.hw-pip.disconnected { background: var(--border2); border: 1px solid var(--border); }
+.hw-pip.no-hw        { visibility: hidden; }
+
+.svc-body { min-width: 0; }
+.svc-name {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.svc-desc {
+  font-size: 11px; color: var(--muted); margin-top: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.svc-uptime {
+  font-family: var(--font-mono);
+  font-size: 11px; color: var(--muted);
+  min-width: 44px; text-align: right;
+}
+
+.svc-actions { display: flex; gap: 4px; }
+.svc-btn {
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 9px;
+  transition: all .12s;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.svc-btn:hover           { color: var(--text); border-color: var(--muted2); }
+.svc-btn.start:hover     { color: var(--green); border-color: var(--green); background: rgba(16,185,129,.06); }
+.svc-btn.stop:hover      { color: var(--red);   border-color: var(--red);   background: rgba(244,63,94,.06); }
+.svc-btn.restart:hover   { color: var(--yellow); border-color: var(--yellow); background: rgba(245,158,11,.06); }
+.svc-btn:disabled        { opacity: .3; cursor: default; pointer-events: none; }
+
+/* ── Sidebar ── */
+.sidebar {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border);
+  border-left: 1px solid var(--border);
+}
+.side-card {
+  background: var(--bg);
+  padding: 20px 22px;
+}
+.side-title {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--muted); margin-bottom: 14px;
+}
+
+/* ZMQ */
+.zmq-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+.zmq-pip {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--muted); flex-shrink: 0;
+  transition: background .3s, box-shadow .3s;
+}
+.zmq-pip.active {
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(14,165,233,.7);
+  animation: zmq-pulse 2s ease-in-out infinite;
+}
+@keyframes zmq-pulse {
+  0%,100%{ box-shadow: 0 0 4px rgba(14,165,233,.5); }
+  50%    { box-shadow: 0 0 10px rgba(14,165,233,.9); }
+}
+.zmq-info { flex: 1; }
+.zmq-addr { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--text); }
+.zmq-rate { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.zmq-consumers {
+  font-size: 10px; color: var(--muted);
+  line-height: 1.7;
+}
+.zmq-consumers span { display: flex; align-items: center; gap: 6px; }
+.zmq-consumers span::before { content: '›'; color: var(--border2); }
+
+/* Telemetry */
+.telem-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+}
+.telem-cell {
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.telem-val {
+  font-family: var(--font-mono);
+  font-size: 22px; font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+.telem-val.active { color: var(--accent); }
+.telem-lbl {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted); margin-top: 5px;
+}
+
+/* Log viewer */
+.log-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.log-tabs { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
+.log-tab {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 10px; font-weight: 600;
+  padding: 4px 9px;
+  transition: all .12s;
+  letter-spacing: 0.02em;
+}
+.log-tab:hover, .log-tab.active {
+  border-color: var(--accent);
+  color: var(--text);
+  background: rgba(14,165,233,.06);
+}
+.log-box {
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  flex: 1;
+  min-height: 180px;
+  max-height: 260px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.7;
+  color: #cbd5e1;
+  scroll-behavior: smooth;
+}
+.log-box::-webkit-scrollbar { width: 4px; }
+.log-box::-webkit-scrollbar-track { background: transparent; }
+.log-box::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.log-line.err  { color: var(--red); }
+.log-line.warn { color: var(--yellow); }
+.log-line.info { color: var(--muted2); }
+
+/* ── Countdown overlay ── */
+#countdown-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.85);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+#countdown-overlay.visible { display: flex; }
+#countdown-num {
+  font-size: 140px;
+  font-weight: 800;
+  color: var(--green);
+  line-height: 1;
+  font-family: var(--font-mono);
+  text-shadow: 0 0 60px rgba(16,185,129,.5);
+}
+#countdown-label {
+  font-size: 14px; font-weight: 600;
+  color: var(--muted2);
+  text-transform: uppercase; letter-spacing: 0.12em;
+}
+
+/* ── Sessions panel ── */
+#sessions-view {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  padding: 24px;
+  overflow: hidden;
+}
+#sessions-view.active { display: flex; }
+
+
+.sessions-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.sessions-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted2);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.breadcrumb-sep { color: var(--border2); }
+.breadcrumb-part {
+  color: var(--muted2);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: color .12s;
+}
+.breadcrumb-part:hover { color: var(--accent); }
+.breadcrumb-part.current { color: var(--text); cursor: default; }
+.sessions-root-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.sessions-table-wrap {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.sessions-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.sessions-table th {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border2);
+  background: var(--surface2);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.sessions-table td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text);
+  vertical-align: middle;
+}
+.sessions-table tr:last-child td { border-bottom: none; }
+.sessions-table tr:hover td { background: var(--surface2); }
+
+.entry-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.entry-name.is-dir {
+  cursor: pointer;
+  color: var(--accent);
+}
+.entry-name.is-dir:hover { text-decoration: underline; }
+.entry-icon { font-size: 13px; flex-shrink: 0; }
+.entry-size { font-family: var(--font-mono); font-size: 11px; color: var(--muted2); }
+.entry-date { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.entry-count { font-size: 11px; color: var(--muted); }
+
+.sessions-empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+.sessions-empty .empty-icon { font-size: 32px; margin-bottom: 12px; opacity: .4; }
+
+.btn-back {
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 5px;
+  color: var(--muted2);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 12px;
+  transition: all .12s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-back:hover { color: var(--text); border-color: var(--muted2); }
+.btn-back:disabled { opacity: .3; pointer-events: none; }
+
+.btn-refresh {
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 5px;
+  color: var(--muted2);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  transition: all .12s;
+}
+.btn-refresh:hover { color: var(--accent); border-color: var(--accent); }
+
+.entry-actions { display: flex; gap: 4px; justify-content: flex-end; }
+.entry-btn {
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  transition: all .12s;
+  white-space: nowrap;
+}
+.entry-btn:hover           { color: var(--text); border-color: var(--muted2); }
+.entry-btn.download:hover  { color: var(--accent); border-color: var(--accent); background: rgba(14,165,233,.06); }
+.entry-btn.preview:hover   { color: var(--green); border-color: var(--green); background: rgba(16,185,129,.06); }
+.entry-btn.delete:hover    { color: var(--red); border-color: var(--red); background: rgba(244,63,94,.06); }
+
+/* Preview modal */
+#preview-modal {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.7);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+#preview-modal.visible { display: flex; }
+.preview-box {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 900px;
+  max-height: 80vh;
+}
+.preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border2);
+  flex-shrink: 0;
+}
+.preview-filename {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.preview-close {
+  background: none; border: none; color: var(--muted);
+  cursor: pointer; font-size: 18px; line-height: 1;
+  padding: 2px 6px; border-radius: 4px;
+  transition: color .12s;
+}
+.preview-close:hover { color: var(--text); }
+.preview-content {
+  overflow-y: auto;
+  padding: 16px 18px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.65;
+  color: var(--muted2);
+  white-space: pre-wrap;
+  word-break: break-all;
+  flex: 1;
+}
+.preview-content::-webkit-scrollbar { width: 4px; }
+.preview-content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── Responsive ── */
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { grid-column: 1; grid-row: auto; border-left: none; border-top: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 11V6.5a2.5 2.5 0 0 0-5 0V11m0 0V5.5a2.5 2.5 0 0 0-5 0V11m0 0V7.5a2.5 2.5 0 0 0-5 0V14a8 8 0 0 0 16 0v-3h-1z"/>
+        </svg>
+      </div>
+      <span class="brand-name">DIGITY</span>
+      <span class="brand-ver">v1.0</span>
+    </div>
+    <nav class="topbar-nav">
+      <a href="#" class="nav-link active" id="nav-dashboard" onclick="switchView('dashboard')">Dashboard</a>
+      <a href="#" class="nav-link" id="nav-sessions" onclick="switchView('sessions')">Sessions</a>
+      <a href="/hand" class="nav-link">Hand Viewer</a>
+      <a href="/setup" class="nav-link">Setup</a>
+
+    </nav>
+  </div>
+  <div class="topbar-right">
+    <span class="sys-clock" id="sys-clock">--:--:--</span>
+    <div class="zmq-subs-badge" id="zmq-subs-badge" title="ZMQ subscribers">
+      <span class="dot"></span><span id="zmq-subs-label">0 subs</span>
+    </div>
+    <div class="conn-badge" id="conn-badge">d
+      <span class="dot"></span>CONNECTED
+    </div>
+  </div>
+</div>
+
+<!-- Layout -->
+<div class="layout">
+
+  <!-- Recording -->
+  <div class="panel record-panel">
+    <div class="panel-title">Recording Control</div>
+    <div class="record-layout">
+      <div class="rec-button-area">
+        <button class="rec-btn start" id="btn-start" onclick="startRecording()">
+          <svg class="rec-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="6" fill="currentColor"/>
+          </svg>
+          <span class="rec-label">REC</span>
+        </button>
+        <button class="rec-btn stop" id="btn-stop" onclick="stopRecording()" style="display:none">
+          <svg class="rec-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/>
+          </svg>
+          <span class="rec-label">STOP</span>
+        </button>
+      </div>
+
+      <div class="rec-info">
+        <div class="rec-status-row">
+          <span class="rec-state-dot" id="rec-dot"></span>
+          <span class="rec-state-label" id="rec-label">IDLE</span>
+        </div>
+        <div class="rec-timer" id="rec-timer">00:00</div>
+        <div class="meta-row">
+          <div class="meta-field">
+            <div class="meta-label">User ID</div>
+            <input type="text" id="meta-user" placeholder="user01">
+          </div>
+          <div class="meta-field">
+            <div class="meta-label">Task</div>
+            <div style="display:flex;gap:4px;align-items:center;">
+              <select id="meta-task"></select>
+              <button onclick="openAddTask()" title="Add task" style="padding:0 7px;height:26px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--muted2);cursor:pointer;font-size:14px;line-height:1;">+</button>
+            </div>
+            <div id="add-task-row" style="display:none;margin-top:4px;display:none;gap:4px;">
+              <input type="text" id="new-task-input" placeholder="task_name" style="flex:1;min-width:0;"
+                     onkeydown="if(event.key==='Enter')submitAddTask();if(event.key==='Escape')closeAddTask();">
+              <button onclick="submitAddTask()" style="padding:0 8px;height:26px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--green);cursor:pointer;font-size:12px;">OK</button>
+              <button onclick="closeAddTask()" style="padding:0 8px;height:26px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--muted2);cursor:pointer;font-size:12px;">✕</button>
+            </div>
+          </div>
+          <div class="meta-field">
+            <div class="meta-label">Hand</div>
+            <select id="meta-hand">
+              <option value="right">Right</option>
+              <option value="left">Left</option>
+            </select>
+          </div>
+          <div class="meta-field">
+            <div class="meta-label">Station</div>
+            <input type="text" id="meta-station" value="st01">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Services -->
+  <div class="panel services-panel">
+    <div class="panel-title">Services</div>
+    <div class="svc-legend">
+      <div class="svc-legend-item"><span class="legend-pip" style="background:var(--green)"></span>Process running</div>
+      <div class="svc-legend-item"><span class="legend-pip" style="background:var(--blue)"></span>Hardware connected</div>
+    </div>
+    <div class="svc-list" id="service-list">
+      <div style="color:var(--muted);padding:10px 0">Loading services…</div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+
+    <!-- ZMQ -->
+    <div class="side-card">
+      <div class="side-title">ZMQ Stream</div>
+      <div class="zmq-row">
+        <div class="zmq-pip" id="zmq-pip"></div>
+        <div class="zmq-info">
+          <div class="zmq-addr">tcp://127.0.0.1:5555</div>
+          <div class="zmq-rate" id="zmq-rate">— Hz · topic: raw</div>
+        </div>
+      </div>
+      <div class="zmq-consumers">
+        <span>Unity · NetMQ</span>
+        <span>Isaac Sim · pyzmq</span>
+        <span>ROS2 bridge</span>
+      </div>
+    </div>
+
+    <!-- Telemetry -->
+    <div class="side-card">
+      <div class="side-title">EXO Telemetry</div>
+      <div class="telem-grid">
+        <div class="telem-cell">
+          <div class="telem-val" id="telem-hz">—</div>
+          <div class="telem-lbl">Hz</div>
+        </div>
+        <div class="telem-cell">
+          <div class="telem-val" id="telem-bytes">—</div>
+          <div class="telem-lbl">KB/s</div>
+        </div>
+        <div class="telem-cell">
+          <div class="telem-val" id="telem-frames">—</div>
+          <div class="telem-lbl">Frames</div>
+        </div>
+        <div class="telem-cell">
+          <div class="telem-val" id="telem-dropped">—</div>
+          <div class="telem-lbl">Dropped</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logs -->
+    <div class="side-card log-card">
+      <div class="side-title">Service Logs</div>
+      <div class="log-tabs" id="log-tabs"></div>
+      <div class="log-box" id="log-box">
+        <span style="color:var(--muted)">Select a service tab…</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Sessions view -->
+<div id="sessions-view">
+  <div class="sessions-header">
+    <button class="btn-back" id="btn-back" onclick="sessionsGoBack()" disabled>← Back</button>
+    <div class="sessions-breadcrumb" id="sessions-breadcrumb"></div>
+    <button class="btn-refresh" onclick="sessionsRefresh()" title="Refresh">↻</button>
+  </div>
+  <div class="sessions-table-wrap">
+    <table class="sessions-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Files</th>
+          <th>Size</th>
+          <th>Modified</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="sessions-tbody">
+        <tr><td colspan="5"><div class="sessions-empty"><div class="empty-icon">📁</div>Loading…</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Preview modal -->
+<div id="preview-modal" onclick="closePreview(event)">
+  <div class="preview-box">
+    <div class="preview-header">
+      <span class="preview-filename" id="preview-filename"></span>
+      <button class="preview-close" onclick="closePreview()">✕</button>
+    </div>
+    <div class="preview-content" id="preview-content"></div>
+  </div>
+</div>
+
+<!-- Countdown overlay -->
+<div id="countdown-overlay">
+  <div id="countdown-num">3</div>
+  <div id="countdown-label">Recording starts</div>
+</div>
+
+<script src="/static/js/socket.io.min.js"></script>
+<script>
+const socket = io();
+
+
+let recording   = false;
+let timerHandle = null;
+let elapsed     = 0;
+let services    = {};
+let devices     = {};
+let activeLog   = null;
+let logInterval = null;
+
+const HW_SERVICES = new Set(["camera_pov", "camera_pov2", "exo_capture"]);
+
+// ── Clock ──────────────────────────────────────────────────────────────────
+function tickClock() {
+  const now = new Date();
+  document.getElementById("sys-clock").textContent =
+    now.toTimeString().slice(0,8);
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+// ── SocketIO ───────────────────────────────────────────────────────────────
+socket.on("connect", () => {
+  socket.emit("request_services");
+  setBadge(true);
+});
+socket.on("disconnect", () => setBadge(false));
+
+function setBadge(ok) {
+  const el = document.getElementById("conn-badge");
+  el.className = "conn-badge" + (ok ? "" : " disconnected");
+  el.innerHTML = `<span class="dot"></span>${ok ? "CONNECTED" : "OFFLINE"}`;
+}
+
+socket.on("services_snapshot", (list) => {
+  list.forEach(s => { services[s.key] = s; });
+  renderServices();
+  rebuildLogTabs();
+});
+
+socket.on("devices_snapshot", (d) => {
+  devices = d;
+  Object.keys(d).forEach(k => updateHwPip(k, d[k]));
+});
+
+socket.on("device_status", (d) => {
+  devices[d.key] = d.connected;
+  updateHwPip(d.key, d.connected);
+});
+
+socket.on("service_update", (svc) => {
+  services[svc.key] = svc;
+  updateSvcRow(svc);
+});
+
+socket.on("recording_state", (d) => setRecordingState(d.recording));
+
+socket.on("exo_telemetry", (d) => {
+  const hz = d.hz ?? "—";
+  document.getElementById("telem-hz").textContent     = hz;
+  document.getElementById("telem-bytes").textContent  = d.kb_s    ?? "—";
+  document.getElementById("telem-frames").textContent = d.frames  ?? "—";
+  document.getElementById("telem-dropped").textContent= d.dropped ?? "—";
+  ["telem-hz","telem-bytes","telem-frames"].forEach(id => {
+    document.getElementById(id).classList.toggle("active", d.hz > 0);
+  });
+});
+
+// ── ZMQ subscriber status ───────────────────────────────────────────────────
+socket.on("zmq_status", (d) => {
+  const badge = document.getElementById("zmq-subs-badge");
+  const label = document.getElementById("zmq-subs-label");
+  const n = d.total_subscribers ?? 0;
+  badge.style.display = "flex";
+  label.textContent = n + (n === 1 ? " sub" : " subs");
+  badge.classList.toggle("active", n > 0);
+  badge.title = buildZmqTitle(d);
+});
+
+function buildZmqTitle(d) {
+  const topics = d.topics ?? {};
+  const active = Object.entries(topics).filter(([,v]) => v > 0);
+  if (active.length === 0) return "ZMQ: no subscribers";
+  return "ZMQ " + d.pub_hz + " Hz\n" +
+    active.map(([t, c]) => `  ${t}: ${c} sub${c>1?"s":""}`).join("\n");
+}
+
+// ── Task list ───────────────────────────────────────────────────────────────
+function populateTasks(tasks) {
+  const sel = document.getElementById('meta-task');
+  const prev = sel.value;
+  sel.innerHTML = '';
+  for (const t of tasks) {
+    const opt = document.createElement('option');
+    opt.value = opt.textContent = t;
+    sel.appendChild(opt);
+  }
+  if (prev && tasks.includes(prev)) sel.value = prev;
+}
+
+async function loadTasks() {
+  try {
+    const r = await fetch('/tasks');
+    const tasks = await r.json();
+    populateTasks(tasks);
+  } catch (e) {
+    console.warn('Could not load tasks:', e);
+  }
+}
+
+function openAddTask() {
+  const row = document.getElementById('add-task-row');
+  row.style.display = 'flex';
+  document.getElementById('new-task-input').focus();
+}
+
+function closeAddTask() {
+  document.getElementById('add-task-row').style.display = 'none';
+  document.getElementById('new-task-input').value = '';
+}
+
+async function submitAddTask() {
+  const input = document.getElementById('new-task-input');
+  const name  = input.value.trim();
+  if (!name) return;
+  const r     = await fetch('/tasks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  const tasks = await r.json();
+  if (!r.ok) { alert(tasks.error || 'Error adding task'); return; }
+  populateTasks(tasks);
+  document.getElementById('meta-task').value = name;
+  closeAddTask();
+}
+
+loadTasks();
+
+// ── Recording ──────────────────────────────────────────────────────────────
+function startRecording() {
+  let n = 3;
+  const overlay = document.getElementById("countdown-overlay");
+  const num     = document.getElementById("countdown-num");
+  overlay.classList.add("visible");
+  num.textContent = n;
+  const iv = setInterval(() => {
+    n--;
+    if (n <= 0) {
+      clearInterval(iv);
+      overlay.classList.remove("visible");
+      _doStart();
+    } else {
+      num.textContent = n;
+    }
+  }, 1000);
+}
+
+function _doStart() {
+  const now = new Date();
+  const pad = (n, w=2) => String(n).padStart(w, '0');
+  const session_id = `${now.getFullYear()}_${pad(now.getMonth()+1)}_${pad(now.getDate())}T${pad(now.getHours())}_${pad(now.getMinutes())}_${pad(now.getSeconds())}_${pad(now.getMilliseconds(), 3)}`;
+  const meta = {
+    user_id:    document.getElementById("meta-user").value    || "user01",
+    session_id: session_id,
+    task_type:  document.getElementById("meta-task").value,
+    hand:       document.getElementById("meta-hand").value,
+    station_id: document.getElementById("meta-station").value || "st01",
+  };
+  fetch("/start", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(meta) });
+}
+
+function stopRecording() {
+  fetch("/stop", { method:"POST" });
+}
+
+function setRecordingState(isRec) {
+  recording = isRec;
+  document.getElementById("btn-start").style.display = isRec ? "none" : "";
+  document.getElementById("btn-stop").style.display  = isRec ? "" : "none";
+  document.getElementById("rec-dot").classList.toggle("recording", isRec);
+  const lbl = document.getElementById("rec-label");
+  lbl.textContent = isRec ? "RECORDING" : "IDLE";
+  lbl.className   = "rec-state-label" + (isRec ? " recording" : "");
+  const timer = document.getElementById("rec-timer");
+  timer.classList.toggle("recording", isRec);
+
+  if (isRec) {
+    elapsed = 0;
+    timerHandle = setInterval(() => {
+      elapsed++;
+      const m = String(Math.floor(elapsed/60)).padStart(2,"0");
+      const s = String(elapsed % 60).padStart(2,"0");
+      document.getElementById("rec-timer").textContent = `${m}:${s}`;
+    }, 1000);
+  } else {
+    clearInterval(timerHandle);
+    document.getElementById("rec-timer").textContent = "00:00";
+  }
+}
+
+// ── Services ───────────────────────────────────────────────────────────────
+function renderServices() {
+  const list = document.getElementById("service-list");
+  list.innerHTML = "";
+  Object.values(services).forEach(svc => {
+    list.appendChild(makeSvcRow(svc));
+    if (svc.key === "zmq_publisher") syncZmqPip(svc.status);
+  });
+}
+
+function makeSvcRow(svc) {
+  const el = document.createElement("div");
+  el.className = "svc-row";
+  el.id = `svc-${svc.key}`;
+  el.innerHTML = svcRowHTML(svc);
+  return el;
+}
+
+function svcRowHTML(svc) {
+  const isRun  = svc.status === "running";
+  const hasHw  = HW_SERVICES.has(svc.key);
+  const hwConn = hasHw ? devices[svc.key] === true : null;
+  const hwCls  = hasHw ? (hwConn ? "connected" : "disconnected") : "no-hw";
+  const uptime = isRun ? fmtUptime(svc.uptime) : "";
+  return `
+    <div class="svc-pips">
+      <span class="svc-pip ${svc.status}" id="pip-${svc.key}" title="Process: ${svc.status}"></span>
+      <span class="hw-pip ${hwCls}" id="hw-${svc.key}" title="${hasHw ? (hwConn ? "Hardware connected" : "No hardware") : ""}"></span>
+    </div>
+    <div class="svc-body">
+      <div class="svc-name">${svc.label}</div>
+      <div class="svc-desc">${svc.description}</div>
+    </div>
+    <span class="svc-uptime">${uptime}</span>
+    <div class="svc-actions">
+      <button class="svc-btn start"   onclick="svcStart('${svc.key}')"   ${isRun  ? "disabled" : ""}>Start</button>
+      <button class="svc-btn stop"    onclick="svcStop('${svc.key}')"    ${!isRun ? "disabled" : ""}>Stop</button>
+      <button class="svc-btn restart" onclick="svcRestart('${svc.key}')">↺</button>
+    </div>`;
+}
+
+function updateSvcRow(svc) {
+  const el = document.getElementById(`svc-${svc.key}`);
+  if (el) el.innerHTML = svcRowHTML(svc);
+  if (svc.key === "zmq_publisher") syncZmqPip(svc.status);
+}
+
+function syncZmqPip(status) {
+  document.getElementById("zmq-pip").classList.toggle("active", status === "running");
+}
+
+function updateHwPip(key, connected) {
+  const pip = document.getElementById(`hw-${key}`);
+  if (!pip) return;
+  pip.className = "hw-pip " + (connected ? "connected" : "disconnected");
+  pip.title = connected ? "Hardware connected" : "No hardware detected";
+}
+
+function fmtUptime(sec) {
+  if (sec < 60)   return `${sec}s`;
+  if (sec < 3600) return `${Math.floor(sec/60)}m`;
+  return `${Math.floor(sec/3600)}h`;
+}
+
+// ── Service actions ────────────────────────────────────────────────────────
+async function svcStart(key) {
+  const r = await fetch(`/services/${key}/start`, {method:"POST"});
+  const d = await r.json();
+  if (d.service) updateSvcRow(d.service);
+}
+async function svcStop(key) {
+  const r = await fetch(`/services/${key}/stop`, {method:"POST"});
+  const d = await r.json();
+  if (d.service) updateSvcRow(d.service);
+}
+async function svcRestart(key) {
+  const r = await fetch(`/services/${key}/restart`, {method:"POST"});
+  const d = await r.json();
+  if (d.service) updateSvcRow(d.service);
+}
+
+// ── Logs ───────────────────────────────────────────────────────────────────
+function rebuildLogTabs() {
+  const tabs = document.getElementById("log-tabs");
+  tabs.innerHTML = "";
+  Object.values(services).forEach(svc => {
+    const btn = document.createElement("button");
+    btn.className = "log-tab" + (activeLog === svc.key ? " active" : "");
+    btn.textContent = svc.label;
+    btn.onclick = () => selectLog(svc.key);
+    tabs.appendChild(btn);
+  });
+}
+
+function selectLog(key) {
+  activeLog = key;
+  rebuildLogTabs();
+  fetchLogs(key);
+  clearInterval(logInterval);
+  logInterval = setInterval(() => fetchLogs(key), 3000);
+}
+
+async function fetchLogs(key) {
+  const r = await fetch(`/services/${key}/logs?lines=80`);
+  const d = await r.json();
+  const box = document.getElementById("log-box");
+  box.innerHTML = d.lines.map(l => {
+    const cls = l.includes("ERROR") || l.includes("CRITICAL") ? "err"
+              : l.includes("WARN") ? "warn" : "info";
+    return `<div class="log-line ${cls}">${escHtml(l)}</div>`;
+  }).join("") || `<span style="color:var(--muted)">No logs.</span>`;
+  box.scrollTop = box.scrollHeight;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// ── View switcher ───────────────────────────────────────────────────────────
+function switchView(view) {
+  const layout   = document.querySelector(".layout");
+  const sessions = document.getElementById("sessions-view");
+  const navDash  = document.getElementById("nav-dashboard");
+  const navSess  = document.getElementById("nav-sessions");
+
+  if (view === "sessions") {
+    layout.style.display   = "none";
+    sessions.classList.add("active");
+    navDash.classList.remove("active");
+    navSess.classList.add("active");
+    if (sessionsPath === null) sessionsLoad("");
+  } else {
+    layout.style.display   = "";
+    sessions.classList.remove("active");
+    navDash.classList.add("active");
+    navSess.classList.remove("active");
+  }
+}
+
+// ── Sessions file browser ───────────────────────────────────────────────────
+let sessionsPath    = null;   // null = never loaded
+let sessionsHistory = [];     // stack of visited paths
+
+async function sessionsLoad(path) {
+  sessionsPath = path;
+  renderBreadcrumb(path);
+  document.getElementById("btn-back").disabled = sessionsHistory.length === 0;
+
+  const tbody = document.getElementById("sessions-tbody");
+  tbody.innerHTML = `<tr><td colspan="5"><div class="sessions-empty"><div class="empty-icon">⏳</div>Loading…</div></td></tr>`;
+
+  try {
+    const r = await fetch(`/session?path=${encodeURIComponent(path)}`);
+    const d = await r.json();
+
+    if (d.error) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="sessions-empty"><div class="empty-icon">⚠️</div>${escHtml(d.error)}</div></td></tr>`;
+      return;
+    }
+    if (!d.exists) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="sessions-empty"><div class="empty-icon">📂</div>/mnt/data/session not found</div></td></tr>`;
+      return;
+    }
+    if (d.entries.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="sessions-empty"><div class="empty-icon">📭</div>Empty directory</div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = d.entries.map(e => {
+      const icon  = e.is_dir ? "📁" : fileIcon(e.name);
+      const epath = e.path.replace(/'/g, "\\'");
+      const name  = e.is_dir
+        ? `<span class="entry-name is-dir" onclick="sessionsEnter('${epath}')">`
+        + `<span class="entry-icon">${icon}</span>${escHtml(e.name)}</span>`
+        : `<span class="entry-name"><span class="entry-icon">${icon}</span>${escHtml(e.name)}</span>`;
+      const files = e.is_dir ? `<td class="entry-count">${e.file_count} files</td>` : `<td></td>`;
+      const size  = fmtSize(e.is_dir ? e.total_size : e.size);
+      const date  = fmtDate(e.mtime);
+
+      const previewExts = new Set(["json","jsonl","txt","log","csv","yaml","yml"]);
+      const ext = e.name.split(".").pop().toLowerCase();
+      const canPreview = !e.is_dir && previewExts.has(ext);
+
+      const actions = e.is_dir
+        ? `<div class="entry-actions">
+             <button class="entry-btn delete" onclick="sessionDelete('${epath}', true)">Delete</button>
+           </div>`
+        : `<div class="entry-actions">
+             ${canPreview ? `<button class="entry-btn preview" onclick="sessionPreview('${epath}')">View</button>` : ""}
+             <button class="entry-btn download" onclick="sessionDownload('${epath}')">↓</button>
+             <button class="entry-btn delete" onclick="sessionDelete('${epath}', false)">✕</button>
+           </div>`;
+
+      return `<tr>
+        <td>${name}</td>
+        ${files}
+        <td class="entry-size">${size}</td>
+        <td class="entry-date">${date}</td>
+        <td>${actions}</td>
+      </tr>`;
+    }).join("");
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="sessions-empty"><div class="empty-icon">⚠️</div>Error: ${escHtml(String(err))}</div></td></tr>`;
+  }
+}
+
+function sessionsEnter(path) {
+  sessionsHistory.push(sessionsPath);
+  sessionsLoad(path);
+}
+
+function sessionsGoBack() {
+  if (sessionsHistory.length === 0) return;
+  const prev = sessionsHistory.pop();
+  sessionsLoad(prev);
+}
+
+function sessionsRefresh() {
+  sessionsLoad(sessionsPath ?? "");
+}
+
+function renderBreadcrumb(path) {
+  const el    = document.getElementById("sessions-breadcrumb");
+  const root  = "/mnt/data/session";
+  const parts = path ? path.split("/").filter(Boolean) : [];
+
+  let html = `<span class="breadcrumb-part${parts.length === 0 ? " current" : ""}" onclick="sessionsJumpTo(0)">${root}</span>`;
+  parts.forEach((p, i) => {
+    html += `<span class="breadcrumb-sep">/</span>`;
+    const isCurrent = i === parts.length - 1;
+    html += `<span class="breadcrumb-part${isCurrent ? " current" : ""}" onclick="sessionsJumpTo(${i + 1})">${escHtml(p)}</span>`;
+  });
+  el.innerHTML = html;
+}
+
+function sessionsJumpTo(depth) {
+  // depth 0 = root, depth N = first N path parts
+  if (depth === 0) {
+    sessionsHistory.push(sessionsPath);
+    sessionsLoad("");
+    return;
+  }
+  const parts = sessionsPath.split("/").filter(Boolean).slice(0, depth);
+  sessionsHistory.push(sessionsPath);
+  sessionsLoad(parts.join("/"));
+}
+
+// ── Session entry actions ───────────────────────────────────────────────────
+function sessionDownload(path) {
+  const a = document.createElement("a");
+  a.href = `/session/download?path=${encodeURIComponent(path)}`;
+  a.download = "";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+async function sessionPreview(path) {
+  document.getElementById("preview-filename").textContent = path.split("/").pop();
+  document.getElementById("preview-content").textContent = "Loading…";
+  document.getElementById("preview-modal").classList.add("visible");
+  try {
+    const r = await fetch(`/session/preview?path=${encodeURIComponent(path)}`);
+    const d = await r.json();
+    if (d.error) {
+      document.getElementById("preview-content").textContent = "Error: " + d.error;
+    } else {
+      document.getElementById("preview-content").textContent = d.content;
+    }
+  } catch (err) {
+    document.getElementById("preview-content").textContent = "Error: " + err;
+  }
+}
+
+function closePreview(event) {
+  if (event && event.target !== document.getElementById("preview-modal")) return;
+  document.getElementById("preview-modal").classList.remove("visible");
+}
+
+async function sessionDelete(path, isDir) {
+  const label = path.split("/").pop();
+  const msg   = isDir
+    ? `Delete folder "${label}" and ALL its contents?`
+    : `Delete file "${label}"?`;
+  if (!confirm(msg)) return;
+  try {
+    const r = await fetch("/session/delete", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({path})
+    });
+    const d = await r.json();
+    if (d.ok) {
+      sessionsRefresh();
+    } else {
+      alert("Error: " + (d.error || "unknown"));
+    }
+  } catch (err) {
+    alert("Error: " + err);
+  }
+}
+
+function fileIcon(name) {
+  const ext = name.split(".").pop().toLowerCase();
+  const icons = { mp4:"🎬", avi:"🎬", mkv:"🎬", mov:"🎬", jsonl:"📋", json:"📋",
+                  csv:"📊", bag:"📦", rrd:"📦", txt:"📄", log:"📄", png:"🖼️",
+                  jpg:"🖼️", jpeg:"🖼️" };
+  return icons[ext] || "📄";
+}
+
+function fmtSize(bytes) {
+  if (bytes == null) return "—";
+  if (bytes === 0)   return "0 B";
+  const u = ["B","KB","MB","GB","TB"];
+  const i = Math.min(Math.floor(Math.log2(bytes) / 10), u.length - 1);
+  return (bytes / Math.pow(1024, i)).toFixed(i > 0 ? 1 : 0) + " " + u[i];
+}
+
+function fmtDate(ts) {
+  if (!ts) return "—";
+  const d = new Date(ts * 1000);
+  return d.toLocaleDateString() + " " + d.toTimeString().slice(0,5);
+}
+</script>
+</body>
+</html>

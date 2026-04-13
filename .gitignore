@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Logs
+logs/
+*.log
+
+# Runtime / temp
+tmp/
+*.lock
+
+# Data — never commit recordings
+/mnt/
+sessions/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Internal project notes (not for clients)
+CLAUDE.md

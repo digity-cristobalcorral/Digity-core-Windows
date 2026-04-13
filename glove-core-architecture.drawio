@@ -1,0 +1,306 @@
+<mxfile host="app.diagrams.net" modified="2026-03-23T00:00:00.000Z" agent="Claude" version="21.0.0">
+  <diagram name="Glove Core Architecture" id="glove-core-main">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- LAYER LABELS -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <!-- HARDWARE layer background -->
+        <mxCell id="bg_hw" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;opacity=30;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="480" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="bg_hw_lbl" value="HARDWARE" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;fontSize=11;fontStyle=1;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="50" y="45" width="120" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- PRODUCERS layer background -->
+        <mxCell id="bg_prod" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;opacity=30;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="40" y="250" width="480" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="bg_prod_lbl" value="PRODUCERS  (subprocesos gestionados por ServiceManager)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;overflow=hidden;rotatable=0;fontSize=11;fontStyle=1;fontColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="50" y="255" width="420" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- CORE SERVICES layer background -->
+        <mxCell id="bg_core" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;opacity=30;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="40" y="500" width="480" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="bg_core_lbl" value="CORE SERVICES" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;overflow=hidden;rotatable=0;fontSize=11;fontStyle=1;fontColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="50" y="505" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- WEB SERVER layer background -->
+        <mxCell id="bg_web" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;opacity=30;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="580" y="400" width="340" height="380" as="geometry" />
+        </mxCell>
+        <mxCell id="bg_web_lbl" value="WEB SERVER  (app/server.py)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;overflow=hidden;rotatable=0;fontSize=11;fontStyle=1;fontColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="590" y="405" width="280" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ROS2 layer background -->
+        <mxCell id="bg_ros" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;opacity=30;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="990" y="400" width="340" height="380" as="geometry" />
+        </mxCell>
+        <mxCell id="bg_ros_lbl" value="ROS2 / SIMULACIÓN  (Docker)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;overflow=hidden;rotatable=0;fontSize=11;fontStyle=1;fontColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="405" width="300" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- HARDWARE NODES -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <!-- ESP32 -->
+        <mxCell id="esp32" value="&lt;b&gt;ESP32 Glove&lt;/b&gt;&lt;br/&gt;Sensores flex + IMU&lt;br/&gt;Protocolo HUMI&lt;br/&gt;USB Serial 921600 baud" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="80" width="190" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- RealSense x2 -->
+        <mxCell id="cam1" value="&lt;b&gt;RealSense D435i #1&lt;/b&gt;&lt;br/&gt;RGB + Depth&lt;br/&gt;Serial: 843112072148&lt;br/&gt;USB3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="280" y="80" width="180" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cam2" value="&lt;b&gt;RealSense D435i #2&lt;/b&gt;&lt;br/&gt;RGB + Depth&lt;br/&gt;Serial: 818312070414&lt;br/&gt;USB3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="280" y="185" width="180" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- PRODUCERS -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <!-- exo_capture -->
+        <mxCell id="exo" value="&lt;b&gt;exo_capture.py&lt;/b&gt;&lt;br/&gt;Lee bytes raw del serial&lt;br/&gt;Parsea HUMI protocol&lt;br/&gt;Graba stream.raw a disco&lt;br/&gt;Escucha control UDP :9052" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="290" width="190" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- camera_pov -->
+        <mxCell id="cpov1" value="&lt;b&gt;camera_pov.py&lt;/b&gt;&lt;br/&gt;Captura RealSense #1&lt;br/&gt;Graba video MP4&lt;br/&gt;Preview UDP :9013/14&lt;br/&gt;Control UDP :9050" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="280" y="270" width="190" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- camera_pov2 -->
+        <mxCell id="cpov2" value="&lt;b&gt;camera_pov2.py&lt;/b&gt;&lt;br/&gt;Captura RealSense #2&lt;br/&gt;Graba video MP4&lt;br/&gt;Preview UDP :9023/24&lt;br/&gt;Control UDP :9054" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="280" y="390" width="190" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- CORE SERVICES -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <!-- zmq_publisher -->
+        <mxCell id="zmqpub" value="&lt;b&gt;zmq_publisher.py&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;Thread zmq-udp: recibe UDP :9002&lt;br/&gt;Thread zmq-main: queue → XPUB socket&lt;br/&gt;Thread zmq-stats: monitoreo Hz&lt;br/&gt;&lt;br/&gt;&lt;b&gt;ZMQ XPUB tcp://0.0.0.0:5555&lt;/b&gt;&lt;br/&gt;topics: &quot;sensor&quot; | &quot;raw&quot; | &quot;joints&quot;&lt;br/&gt;Status → UDP :5557" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="540" width="280" height="200" as="geometry" />
+        </mxCell>
+
+        <!-- station_daemon -->
+        <mxCell id="daemon" value="&lt;b&gt;station_daemon.py&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;Recibe comandos UDP :5005&lt;br/&gt;Fan-out record_start/stop&lt;br/&gt;a todos los producers&lt;br/&gt;Mutex en estado global" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="640" width="220" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Fix overlapping: move station_daemon to the right -->
+        <mxCell id="daemon2" value="&lt;b&gt;station_daemon.py&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;Recibe comandos UDP :5005&lt;br/&gt;Fan-out record_start/stop&lt;br/&gt;→ :9050, :9052, :9054&lt;br/&gt;Mutex en estado global" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="370" y="540" width="130" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- WEB SERVER -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <!-- server.py -->
+        <mxCell id="server" value="&lt;b&gt;app/server.py&lt;/b&gt;&lt;br/&gt;Flask + SocketIO :5000&lt;br/&gt;&lt;br/&gt;REST: /api/sessions&lt;br/&gt;REST: /api/services&lt;br/&gt;REST: /api/recording&lt;br/&gt;&lt;br/&gt;SocketIO events:&lt;br/&gt;sensor_data, service_update&lt;br/&gt;zmq_status, preview_frame" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="610" y="440" width="200" height="200" as="geometry" />
+        </mxCell>
+
+        <!-- ServiceManager -->
+        <mxCell id="svcmgr" value="&lt;b&gt;ServiceManager&lt;/b&gt;&lt;br/&gt;Lanza y monitorea&lt;br/&gt;todos los subprocesos&lt;br/&gt;(autostart)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="820" y="440" width="80" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- UI -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <!-- Browser UI -->
+        <mxCell id="ui" value="&lt;b&gt;UI — Browser / pywebview&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;dashboard.html — control principal&lt;br/&gt;hand_viewer.html — mano 3D Three.js&lt;br/&gt;setup.html — configuración" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="590" y="820" width="320" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- ROS2 NODES -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <!-- glove_bridge -->
+        <mxCell id="gbridge" value="&lt;b&gt;glove_bridge.py&lt;/b&gt;&lt;br/&gt;ZMQ SUB tcp://localhost:5555&lt;br/&gt;topic &quot;sensor&quot;&lt;br/&gt;&lt;br/&gt;Timer 50 Hz&lt;br/&gt;Ángulos → radianes&lt;br/&gt;Publica /joint_states" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="440" width="200" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- robot_state_publisher -->
+        <mxCell id="rsp" value="&lt;b&gt;robot_state_publisher&lt;/b&gt;&lt;br/&gt;Consume /joint_states&lt;br/&gt;URDF P50 → /tf tree&lt;br/&gt;Broadcast TF transforms" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="620" width="200" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- RViz -->
+        <mxCell id="rviz" value="&lt;b&gt;RViz&lt;/b&gt;&lt;br/&gt;Visualiza URDF&lt;br/&gt;Consume /tf" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="740" width="90" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Isaac Sim -->
+        <mxCell id="isaac" value="&lt;b&gt;Isaac Sim&lt;/b&gt;&lt;br/&gt;OmniGraph ROS2&lt;br/&gt;Subscriber /joint_states&lt;br/&gt;Articulation P50&lt;br/&gt;URDF: /home/digity/converted.urdf" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="740" width="190" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- STORAGE -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <mxCell id="storage" value="&lt;b&gt;/mnt/data/&lt;/b&gt;&lt;br/&gt;session/&lt;br/&gt;├── sensors/stream.raw&lt;br/&gt;├── pov/video.mp4&lt;br/&gt;└── pov2/video.mp4" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="160" y="820" width="180" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- main.py entry -->
+        <mxCell id="mainpy" value="&lt;b&gt;main.py&lt;/b&gt;&lt;br/&gt;Entry point&lt;br/&gt;--web | --app | --no-browser&lt;br/&gt;Arranca ServiceManager" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="820" y="550" width="80" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- CONNECTIONS — HARDWARE → PRODUCERS -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <mxCell id="e_esp_exo" value="USB Serial" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#666666;fontStyle=0;fontSize=10;" edge="1" source="esp32" target="exo" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_cam1_cpov1" value="USB3" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#666666;fontSize=10;" edge="1" source="cam1" target="cpov1" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_cam2_cpov2" value="USB3" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#666666;fontSize=10;" edge="1" source="cam2" target="cpov2" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- CONNECTIONS — PRODUCERS → CORE -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <mxCell id="e_exo_zmq" value="UDP :9002&lt;br/&gt;telemetría JSON" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;strokeColor=#d6b656;fontSize=10;" edge="1" source="exo" target="zmqpub" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- CONNECTIONS — PRODUCERS → STORAGE -->
+        <mxCell id="e_exo_stor" value="stream.raw" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#666666;fontSize=10;dashed=1;" edge="1" source="exo" target="storage" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_cpov1_stor" value="video.mp4" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#666666;fontSize=10;dashed=1;" edge="1" source="cpov1" target="storage" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_cpov2_stor" value="video.mp4" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#666666;fontSize=10;dashed=1;" edge="1" source="cpov2" target="storage" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- CONNECTIONS — ZMQ → SERVER -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <mxCell id="e_zmq_server" value="ZMQ SUB :5555&lt;br/&gt;&quot;sensor&quot; frames" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;strokeColor=#6c8ebf;fontSize=10;" edge="1" source="zmqpub" target="server" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_zmq_status" value="UDP :5557&lt;br/&gt;sub status" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=1;exitY=0.6;exitDx=0;exitDy=0;entryX=0;entryY=0.6;entryDx=0;entryDy=0;strokeColor=#6c8ebf;fontSize=10;dashed=1;" edge="1" source="zmqpub" target="server" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- preview UDP → server -->
+        <mxCell id="e_cpov1_srv" value="UDP :9013/14&lt;br/&gt;preview RGB+D" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;strokeColor=#d6b656;fontSize=10;dashed=1;" edge="1" source="cpov1" target="server" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- CONNECTIONS — ZMQ → ROS2 -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <mxCell id="e_zmq_bridge" value="ZMQ SUB tcp://localhost:5555&lt;br/&gt;topic &quot;sensor&quot;" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=1;exitY=0.15;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;strokeColor=#d79b00;fontStyle=1;fontSize=10;" edge="1" source="zmqpub" target="gbridge" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="960" y="570" />
+              <mxPoint x="960" y="485" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- CONNECTIONS — ROS2 internal -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <mxCell id="e_bridge_rsp" value="/joint_states&lt;br/&gt;50 Hz" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#d79b00;fontStyle=1;fontSize=10;" edge="1" source="gbridge" target="rsp" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_rsp_rviz" value="/tf" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#d79b00;fontSize=10;" edge="1" source="rsp" target="rviz" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_rsp_isaac" value="/joint_states" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;strokeColor=#d79b00;fontSize=10;" edge="1" source="rsp" target="isaac" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- CONNECTIONS — SERVER → UI -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <mxCell id="e_server_ui" value="WebSocket SocketIO&lt;br/&gt;sensor_data, preview_frame&lt;br/&gt;service_update, zmq_status" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#82b366;fontStyle=1;fontSize=10;" edge="1" source="server" target="ui" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- CONNECTIONS — DAEMON fan-out -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <mxCell id="e_srv_daemon" value="UDP :5005&lt;br/&gt;START/STOP" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#82b366;fontSize=10;" edge="1" source="server" target="daemon2" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_daemon_exo" value="UDP :9052" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;fontSize=10;" edge="1" source="daemon2" target="exo" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_daemon_cpov1" value="UDP :9050" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;fontSize=10;" edge="1" source="daemon2" target="cpov1" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_daemon_cpov2" value="UDP :9054" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;fontSize=10;" edge="1" source="daemon2" target="cpov2" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- CONNECTIONS — main.py / ServiceManager -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <mxCell id="e_main_svc" value="crea" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;fontSize=10;" edge="1" source="mainpy" target="svcmgr" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_svc_server" value="lanza" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;fontSize=10;" edge="1" source="svcmgr" target="server" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- PORT LEGEND -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <mxCell id="legend" value="&lt;b&gt;Puertos UDP&lt;/b&gt;&lt;br/&gt;:5000 → Dashboard HTTP&lt;br/&gt;:5005 → station_daemon (START/STOP)&lt;br/&gt;:5555 → ZMQ XPUB (sensor stream)&lt;br/&gt;:5557 → zmq subscriber status&lt;br/&gt;:9002 → exo telemetría → zmq_publisher&lt;br/&gt;:9013/14 → camera_pov preview RGB+D&lt;br/&gt;:9023/24 → camera_pov2 preview RGB+D&lt;br/&gt;:9050 → camera_pov control&lt;br/&gt;:9052 → exo_capture control&lt;br/&gt;:9054 → camera_pov2 control" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f8f8;strokeColor=#aaaaaa;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="990" y="40" width="340" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- FLOW legend -->
+        <mxCell id="flow_legend" value="&lt;b&gt;Flujo principal de datos&lt;/b&gt;&lt;br/&gt;ESP32 → serial → exo_capture&lt;br/&gt;→ UDP:9002 → zmq_publisher&lt;br/&gt;→ ZMQ:5555 → glove_bridge&lt;br/&gt;→ /joint_states → Isaac Sim / RViz&lt;br/&gt;&lt;br/&gt;ESP32 → serial → exo_capture&lt;br/&gt;→ UDP:9002 → zmq_publisher&lt;br/&gt;→ ZMQ:5555 → app/server.py&lt;br/&gt;→ SocketIO → dashboard hand_viewer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff0f0;strokeColor=#cc0000;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="990" y="240" width="340" height="150" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digity — Setup</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #111827;
+  --surface:   #1f2937;
+  --surface2:  #2d3748;
+  --border:    #374151;
+  --border2:   #4b5563;
+  --text:      #f3f4f6;
+  --muted:     #9ca3af;
+  --muted2:    #d1d5db;
+  --accent:    #38bdf8;
+  --green:     #34d399;
+  --red:       #fb7185;
+  --yellow:    #fbbf24;
+  --blue:      #60a5fa;
+  --radius:    8px;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Topbar ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 56px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #1a2233 0%, var(--surface) 100%);
+  flex-shrink: 0;
+  box-shadow: 0 1px 0 rgba(255,255,255,.04);
+}
+.topbar-left { display: flex; align-items: center; gap: 32px; }
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 14px; letter-spacing: 0.04em;
+}
+.brand-icon {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--accent), #6366f1);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+}
+.brand-icon svg { width: 16px; height: 16px; fill: #fff; }
+.brand-ver { font-size: 10px; color: var(--muted); font-weight: 400; margin-left: 2px; }
+
+.topbar-nav { display: flex; gap: 2px; }
+.nav-link {
+  color: var(--muted2); text-decoration: none;
+  font-size: 12px; font-weight: 500;
+  padding: 6px 12px; border-radius: 5px;
+  transition: all .15s; letter-spacing: 0.02em;
+}
+.nav-link:hover { color: var(--text); background: var(--surface2); }
+.nav-link.active { color: var(--text); background: var(--surface2); }
+
+/* ── Layout ── */
+.content {
+  padding: 28px 32px;
+  max-width: 980px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Section cards ── */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.section-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.section-title {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.section-body { padding: 20px; }
+
+/* ── Services health table ── */
+.svc-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.svc-table th {
+  text-align: left;
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted);
+  padding: 0 12px 10px 12px;
+}
+.svc-table td {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  vertical-align: middle;
+}
+.svc-table tr:first-child td { border-top: none; }
+
+.status-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.status-pill .pip { width: 5px; height: 5px; border-radius: 50%; }
+.status-pill.running  { background: rgba(16,185,129,.1); color: var(--green); border: 1px solid rgba(16,185,129,.2); }
+.status-pill.running .pip  { background: var(--green); box-shadow: 0 0 4px var(--green); }
+.status-pill.stopped  { background: rgba(77,86,112,.1); color: var(--muted2); border: 1px solid rgba(77,86,112,.2); }
+.status-pill.stopped .pip  { background: var(--muted); }
+.status-pill.error    { background: rgba(244,63,94,.1); color: var(--red); border: 1px solid rgba(244,63,94,.2); }
+.status-pill.error .pip    { background: var(--red); }
+.status-pill.starting { background: rgba(245,158,11,.1); color: var(--yellow); border: 1px solid rgba(245,158,11,.2); }
+.status-pill.starting .pip { background: var(--yellow); animation: blink .8s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.mono { font-family: var(--font-mono); font-size: 11px; color: var(--muted2); }
+.log-path { font-family: var(--font-mono); font-size: 10px; color: var(--muted); max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Config grid ── */
+.cfg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.cfg-field { display: flex; flex-direction: column; gap: 5px; }
+.cfg-label {
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.cfg-input {
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 5px;
+  color: var(--text);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  outline: none;
+  transition: border-color .15s;
+}
+.cfg-input:focus { border-color: var(--accent); }
+.cfg-input[readonly] { color: var(--muted2); cursor: default; }
+
+.btn-row { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.btn {
+  border: none; border-radius: 5px;
+  cursor: pointer; font-size: 12px; font-weight: 600;
+  padding: 8px 16px;
+  transition: all .15s; letter-spacing: 0.02em;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(14,165,233,.25);
+}
+.btn-primary:hover { opacity: .85; }
+.btn-ghost {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+}
+.btn-ghost:hover { border-color: var(--muted2); }
+.btn-result { font-size: 11px; color: var(--muted); }
+
+/* ── Serial debug ── */
+.serial-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.serial-status-text { font-size: 11px; color: var(--muted); }
+.serial-status-text.running { color: var(--green); }
+
+.serial-warn {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 10px 14px;
+  background: rgba(245,158,11,.06);
+  border: 1px solid rgba(245,158,11,.15);
+  border-radius: 5px;
+  margin-bottom: 14px;
+  font-size: 11px;
+  color: var(--yellow);
+  line-height: 1.5;
+}
+.serial-warn svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; fill: var(--yellow); }
+
+/* ── Camera preview ── */
+.cam-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.cam-card {
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.cam-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.cam-card-title {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text);
+  display: flex; align-items: center; gap: 7px;
+}
+.cam-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--muted);
+  transition: background .3s;
+}
+.cam-dot.live { background: var(--green); box-shadow: 0 0 5px var(--green); }
+.cam-fps {
+  font-size: 10px; font-family: var(--font-mono);
+  color: var(--muted);
+}
+.cam-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  overflow: hidden;
+}
+.cam-viewport img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.cam-nosignal {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 8px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 11px;
+  transition: opacity .3s;
+}
+.cam-nosignal svg { width: 28px; height: 28px; stroke: var(--muted); fill: none; stroke-width: 1.5; }
+.cam-nosignal.hidden { opacity: 0; pointer-events: none; }
+
+.serial-box {
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 12px 14px;
+  height: 200px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.65;
+  color: var(--muted2);
+}
+.serial-box::-webkit-scrollbar { width: 4px; }
+.serial-box::-webkit-scrollbar-track { background: transparent; }
+.serial-box::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.serial-line.binary { color: var(--muted); }
+.serial-line.error  { color: var(--red); }
+.serial-line.sys    { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 11V6.5a2.5 2.5 0 0 0-5 0V11m0 0V5.5a2.5 2.5 0 0 0-5 0V11m0 0V7.5a2.5 2.5 0 0 0-5 0V14a8 8 0 0 0 16 0v-3h-1z"/>
+        </svg>
+      </div>
+      <span>DIGITY</span>
+      <span class="brand-ver">v1.0</span>
+    </div>
+    <nav class="topbar-nav">
+      <a href="/" class="nav-link">Dashboard</a>
+      <a href="/setup" class="nav-link active">Setup</a>
+    </nav>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- Camera Preview -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Camera Preview</div>
+    </div>
+    <div class="section-body">
+      <div class="cam-grid">
+
+        <!-- POV 1 -->
+        <div class="cam-card">
+          <div class="cam-card-header">
+            <div class="cam-card-title">
+              <span class="cam-dot" id="dot-pov"></span>
+              POV 1
+            </div>
+            <span class="cam-fps" id="fps-pov">— fps</span>
+          </div>
+          <div class="cam-viewport">
+            <img id="img-pov" alt="">
+            <div class="cam-nosignal" id="nosignal-pov">
+              <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+              Waiting for signal…
+            </div>
+          </div>
+        </div>
+
+        <!-- POV 2 -->
+        <div class="cam-card">
+          <div class="cam-card-header">
+            <div class="cam-card-title">
+              <span class="cam-dot" id="dot-pov2"></span>
+              POV 2
+            </div>
+            <span class="cam-fps" id="fps-pov2">— fps</span>
+          </div>
+          <div class="cam-viewport">
+            <img id="img-pov2" alt="">
+            <div class="cam-nosignal" id="nosignal-pov2">
+              <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+              Waiting for signal…
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Services Health -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Services Health</div>
+    </div>
+    <div class="section-body" style="padding:0">
+      <table class="svc-table">
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Status</th>
+            <th>PID</th>
+            <th>Uptime</th>
+            <th>Restarts</th>
+            <th>Log</th>
+          </tr>
+        </thead>
+        <tbody id="health-tbody">
+          <tr><td colspan="6" style="color:var(--muted);padding:16px 12px">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Device Settings -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Device Settings</div>
+    </div>
+    <div class="section-body">
+      <div class="cfg-grid">
+        <div class="cfg-field" style="grid-column:1/-1">
+          <div class="cfg-label">Station Name</div>
+          <input class="cfg-input" type="text" id="cfg-station-name" placeholder="Station 1">
+        </div>
+        <div class="cfg-field">
+          <div class="cfg-label">Camera POV 1 — Serial Number</div>
+          <input class="cfg-input" type="text" id="cfg-pov-serial" placeholder="843112072148">
+        </div>
+        <div class="cfg-field">
+          <div class="cfg-label">Camera POV 2 — Serial Number</div>
+          <input class="cfg-input" type="text" id="cfg-pov2-serial" placeholder="818312070414">
+        </div>
+        <div class="cfg-field">
+          <div class="cfg-label">EXO Serial Port</div>
+          <input class="cfg-input" type="text" id="cfg-serial" placeholder="/dev/ttyUSB0">
+        </div>
+        <div class="cfg-field">
+          <div class="cfg-label">EXO Baud Rate</div>
+          <input class="cfg-input" type="text" id="cfg-baud" placeholder="921600">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveConfig()">Save &amp; Apply</button>
+        <button class="btn btn-ghost" onclick="loadConfig()">Reset</button>
+        <span class="btn-result" id="cfg-result"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ZMQ Publisher -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">ZMQ Publisher</div>
+    </div>
+    <div class="section-body">
+      <div class="cfg-grid">
+        <div class="cfg-field">
+          <div class="cfg-label">Publish Address</div>
+          <input class="cfg-input" type="text" value="tcp://127.0.0.1:5555" readonly>
+        </div>
+        <div class="cfg-field">
+          <div class="cfg-label">Joints Address (Phase 2)</div>
+          <input class="cfg-input" type="text" value="tcp://127.0.0.1:5556" readonly>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="testZmq()">Test Connection</button>
+        <span class="btn-result" id="zmq-result">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Serial Debug -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Serial Debug — Raw Output</div>
+    </div>
+    <div class="section-body">
+      <div class="serial-warn">
+        <svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+        EXO Capture service will be stopped while serial debug is active. It restarts automatically when you close debug mode.
+      </div>
+      <div class="serial-controls">
+        <button class="btn btn-ghost" id="btn-serial-debug" onclick="toggleSerialDebug()">Start Debug</button>
+        <span class="serial-status-text" id="serial-status">stopped</span>
+      </div>
+      <div class="serial-box" id="serial-box">
+        <span style="color:var(--muted)">Click "Start Debug" to open the serial port…</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="/static/js/socket.io.min.js"></script>
+<script>
+const socket = io();
+let serialDebugOn = false;
+
+loadConfig();
+
+// ── Camera preview ─────────────────────────────────────────────────────────
+const camState = {
+  pov:  { frames: 0, lastTick: 0, timeout: null },
+  pov2: { frames: 0, lastTick: 0, timeout: null },
+};
+
+function onCamFrame(key, b64) {
+  const img      = document.getElementById("img-" + key);
+  const dot      = document.getElementById("dot-" + key);
+  const nosignal = document.getElementById("nosignal-" + key);
+  const fpsEl    = document.getElementById("fps-" + key);
+  const st       = camState[key];
+
+  // Update image — revoke previous blob to avoid memory leak
+  const blob = new Blob([Uint8Array.from(atob(b64), c => c.charCodeAt(0))],
+                        {type: "image/jpeg"});
+  const url  = URL.createObjectURL(blob);
+  if (img._blobUrl) URL.revokeObjectURL(img._blobUrl);
+  img._blobUrl = url;
+  img.src = url;
+
+  // Signal indicator
+  nosignal.classList.add("hidden");
+  dot.classList.add("live");
+
+  // FPS counter (update every second)
+  st.frames++;
+  const now = Date.now();
+  if (now - st.lastTick >= 1000) {
+    const elapsed = (now - st.lastTick) / 1000;
+    fpsEl.textContent = Math.round(st.frames / elapsed) + " fps";
+    st.frames  = 0;
+    st.lastTick = now;
+  }
+
+  // No-signal timeout (3 s without frames)
+  clearTimeout(st.timeout);
+  st.timeout = setTimeout(() => {
+    nosignal.classList.remove("hidden");
+    dot.classList.remove("live");
+    fpsEl.textContent = "— fps";
+  }, 3000);
+}
+
+socket.on("pov_preview_rgb",  d => onCamFrame("pov",  d.data));
+socket.on("pov2_preview_rgb", d => onCamFrame("pov2", d.data));
+
+// ── Services health ────────────────────────────────────────────────────────
+socket.on("services_snapshot", renderHealth);
+socket.on("service_update", () => {
+  fetch("/services").then(r => r.json()).then(renderHealth);
+});
+socket.emit("request_services");
+
+function renderHealth(list) {
+  if (!Array.isArray(list)) {
+    fetch("/services").then(r => r.json()).then(renderHealth);
+    return;
+  }
+  const tbody = document.getElementById("health-tbody");
+  tbody.innerHTML = list.map(s => `
+    <tr>
+      <td style="font-weight:600">${s.label}</td>
+      <td>
+        <span class="status-pill ${s.status}">
+          <span class="pip"></span>${s.status}
+        </span>
+      </td>
+      <td class="mono">${s.pid ?? "—"}</td>
+      <td class="mono">${s.uptime ? fmtUp(s.uptime) : "—"}</td>
+      <td class="mono">${s.restarts}</td>
+      <td class="log-path" title="${s.log_path}">${s.log_path}</td>
+    </tr>`).join("");
+}
+
+function fmtUp(sec) {
+  if (sec < 60)   return `${sec}s`;
+  if (sec < 3600) return `${Math.floor(sec/60)}m ${sec%60}s`;
+  return `${Math.floor(sec/3600)}h ${Math.floor((sec%3600)/60)}m`;
+}
+
+// ── Restart EXO ───────────────────────────────────────────────────────────
+async function loadConfig() {
+  try {
+    const r = await fetch("/api/config");
+    const d = await r.json();
+    document.getElementById("cfg-station-name").value = d.station_name  ?? "";
+    document.getElementById("cfg-pov-serial").value   = d.camera_pov_serial  ?? "";
+    document.getElementById("cfg-pov2-serial").value  = d.camera_pov2_serial ?? "";
+    document.getElementById("cfg-serial").value       = d.exo_serial_port ?? "";
+    document.getElementById("cfg-baud").value         = d.exo_baud ?? "";
+  } catch(e) {
+    console.error("loadConfig", e);
+  }
+}
+
+async function saveConfig() {
+  const el = document.getElementById("cfg-result");
+  el.textContent = "Saving…";
+  el.style.color = "var(--muted)";
+  const payload = {
+    station_name:       document.getElementById("cfg-station-name").value.trim(),
+    camera_pov_serial:  document.getElementById("cfg-pov-serial").value.trim(),
+    camera_pov2_serial: document.getElementById("cfg-pov2-serial").value.trim(),
+    exo_serial_port:    document.getElementById("cfg-serial").value.trim(),
+    exo_baud:           parseInt(document.getElementById("cfg-baud").value) || 921600,
+  };
+  try {
+    const r = await fetch("/api/config", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload),
+    });
+    const d = await r.json();
+    if (d.ok) {
+      const restarted = d.restarted.length ? ` — restarted: ${d.restarted.join(", ")}` : "";
+      el.textContent = `✓ Saved${restarted}`;
+      el.style.color = "var(--green)";
+    } else {
+      throw new Error("Server error");
+    }
+  } catch(e) {
+    el.textContent = "✗ " + e.message;
+    el.style.color = "var(--red)";
+  }
+  setTimeout(() => { el.textContent = ""; }, 4000);
+}
+
+async function restartExo() {
+  const el = document.getElementById("cfg-result");
+  el.textContent = "Restarting…";
+  el.style.color = "var(--muted)";
+  await fetch("/services/exo_capture/restart", {method:"POST"});
+  el.textContent = "✓ Restart command sent";
+  el.style.color = "var(--green)";
+  setTimeout(() => { el.textContent = ""; }, 3000);
+}
+
+// ── ZMQ test ───────────────────────────────────────────────────────────────
+async function testZmq() {
+  const el = document.getElementById("zmq-result");
+  el.textContent = "Checking…";
+  el.style.color = "var(--muted)";
+  try {
+    const r = await fetch("/services/zmq_publisher");
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    if (d && d.status === "running") {
+      el.textContent = `✓ Running  PID ${d.pid}  uptime ${fmtUp(d.uptime)}`;
+      el.style.color = "var(--green)";
+    } else {
+      el.textContent = `✗ Not running (${d?.status ?? "unknown"})`;
+      el.style.color = "var(--red)";
+    }
+  } catch(e) {
+    el.textContent = "✗ " + e.message;
+    el.style.color = "var(--red)";
+  }
+}
+
+// ── Serial debug ───────────────────────────────────────────────────────────
+socket.on("serial_debug_line", (d) => {
+  const box = document.getElementById("serial-box");
+  // Clear placeholder on first real line
+  if (box.firstChild && box.firstChild.tagName !== "DIV") box.innerHTML = "";
+  const div = document.createElement("div");
+  div.className = "serial-line " + (
+    d.line.startsWith("[binary]") ? "binary" :
+    d.line.startsWith("ERROR") || d.line.startsWith("[error]") ? "error" :
+    d.line.startsWith("[") ? "sys" : ""
+  );
+  div.textContent = d.line;
+  box.appendChild(div);
+  if (box.children.length > 400) box.removeChild(box.firstChild);
+  box.scrollTop = box.scrollHeight;
+});
+
+async function toggleSerialDebug() {
+  const btn    = document.getElementById("btn-serial-debug");
+  const status = document.getElementById("serial-status");
+
+  if (!serialDebugOn) {
+    btn.disabled = true;
+    await fetch("/services/exo_capture/stop", {method:"POST"});
+    await new Promise(r => setTimeout(r, 600));
+
+    document.getElementById("serial-box").innerHTML = "";
+    serialDebugOn = true;
+    socket.emit("serial_debug_start");
+    btn.textContent = "Stop Debug";
+    btn.disabled = false;
+    status.textContent = "running";
+    status.className = "serial-status-text running";
+  } else {
+    socket.emit("serial_debug_stop");
+    serialDebugOn = false;
+    btn.textContent = "Start Debug";
+    status.textContent = "stopped";
+    status.className = "serial-status-text";
+
+    await new Promise(r => setTimeout(r, 400));
+    await fetch("/services/exo_capture/start", {method:"POST"});
+  }
+}
+</script>
+</body>
+</html>

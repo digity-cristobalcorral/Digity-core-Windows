@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hand Viewer — Digity</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+
+:root {
+  --bg:      #07090e;
+  --surface: #0d1018;
+  --surface2:#131720;
+  --border:  #1c2030;
+  --text:    #dce3f0;
+  --muted:   #4d5670;
+  --muted2:  #6b7899;
+  --accent:  #0ea5e9;
+  --green:   #10b981;
+  --red:     #f43f5e;
+  --radius:  8px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Topbar ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 48px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.topbar-left  { display: flex; align-items: center; gap: 16px; }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+
+.back-link {
+  color: var(--muted2);
+  text-decoration: none;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.15s;
+}
+.back-link:hover { color: var(--text); }
+
+.brand {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.chip {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: monospace;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted2);
+}
+.chip.green { color: var(--green); border-color: #10b98133; }
+.chip.red   { color: var(--red);   border-color: #f43f5e33; }
+
+/* ── Layout ── */
+.layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 200px;
+  min-width: 200px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+}
+.card-title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.finger-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: background 0.4s;
+  flex-shrink: 0;
+}
+.finger-dot.live { background: var(--green); }
+
+.angle-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 4px;
+}
+.angle-label {
+  font-size: 10px;
+  color: var(--muted2);
+  width: 24px;
+  flex-shrink: 0;
+}
+.angle-bar-bg {
+  flex: 1;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.angle-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.08s;
+}
+.angle-val {
+  font-size: 10px;
+  color: var(--muted);
+  width: 30px;
+  text-align: right;
+  font-family: monospace;
+}
+
+/* Touch grid */
+.touch-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+.touch-cell {
+  height: 22px;
+  border-radius: 3px;
+  background: var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.touch-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--accent);
+  opacity: 0.7;
+  transition: height 0.08s;
+  height: 0%;
+}
+.touch-label {
+  position: absolute;
+  bottom: 2px;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 9px;
+  color: var(--muted2);
+}
+
+/* IMU */
+.imu-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+.imu-label { color: var(--muted2); font-size: 10px; }
+.imu-val   { font-size: 10px; font-family: monospace; color: var(--text); }
+
+/* ── Canvas wrapper ── */
+.canvas-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+#canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+.hint {
+  position: absolute;
+  bottom: 12px;
+  right: 14px;
+  font-size: 10px;
+  color: var(--muted);
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="/" class="back-link">&#8592; Dashboard</a>
+    <span class="brand">Hand Viewer</span>
+  </div>
+  <div class="topbar-right">
+    <span class="chip" id="chip-fps">0 fps</span>
+    <span class="chip red" id="chip-signal">No Signal</span>
+    <span class="chip" id="chip-pkt">0 pkt/s</span>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar" id="sidebar">
+    <!-- Finger cards injected by JS, then static cards below -->
+    <div class="card">
+      <div class="card-title">Touch</div>
+      <div class="touch-grid" id="touch-grid"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">IMU</div>
+      <div class="imu-row"><span class="imu-label">Acc X</span><span class="imu-val" id="imu-ax">—</span></div>
+      <div class="imu-row"><span class="imu-label">Acc Y</span><span class="imu-val" id="imu-ay">—</span></div>
+      <div class="imu-row"><span class="imu-label">Acc Z</span><span class="imu-val" id="imu-az">—</span></div>
+      <div class="imu-row"><span class="imu-label">Gyr X</span><span class="imu-val" id="imu-gx">—</span></div>
+      <div class="imu-row"><span class="imu-label">Gyr Y</span><span class="imu-val" id="imu-gy">—</span></div>
+      <div class="imu-row"><span class="imu-label">Gyr Z</span><span class="imu-val" id="imu-gz">—</span></div>
+    </div>
+  </div>
+
+  <div class="canvas-wrapper">
+    <canvas id="canvas"></canvas>
+    <div class="hint">drag to rotate &nbsp;·&nbsp; scroll to zoom</div>
+  </div>
+</div>
+
+<script src="/static/js/socket.io.min.js"></script>
+
+<!-- Three.js served locally from static/ — direct imports, no importmap needed -->
+<script type="module">
+import * as THREE from '/static/js/three/three.module.js';
+import { OrbitControls } from '/static/js/three/OrbitControls.patched.js';
+
+// ── Sensor state ─────────────────────────────────────────────────────────────
+
+const FINGER_META = [
+  { idx: 0, name: 'Thumb',  labels: ['Abd', 'Flex1', 'Flex2'] },
+  { idx: 1, name: 'Index',  labels: ['Flex1', 'Flex2', 'Flex3'] },
+  { idx: 2, name: 'Middle', labels: ['Flex1', 'Flex2', 'Flex3'] },
+  { idx: 3, name: 'Ring',   labels: ['Flex1', 'Flex2', 'Flex3'] },
+  { idx: 4, name: 'Pinky',  labels: ['Flex1', 'Flex2', 'Flex3'] },
+];
+
+const sensorState = {
+  fingers: { 0: { angles: [0,0,0], ts: 0 }, 1: { angles: [0,0,0], ts: 0 },
+             2: { angles: [0,0,0], ts: 0 }, 3: { angles: [0,0,0], ts: 0 },
+             4: { angles: [0,0,0], ts: 0 } },
+  touch: [0,0,0,0,0,0],
+  imu:   { acc: [0,0,0], gyro: [0,0,0] },
+  lastFrame: 0,
+  pktTotal: 0,
+};
+
+// Target angles for smooth lerp animation (raw degrees from sensor)
+const targetDeg = { 0:[0,0,0], 1:[0,0,0], 2:[0,0,0], 3:[0,0,0], 4:[0,0,0] };
+
+// ── Build sidebar finger cards ────────────────────────────────────────────────
+
+const sidebar = document.getElementById('sidebar');
+const uiFinger = {};  // idx → { dot, bars, vals }
+
+for (const fm of FINGER_META) {
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const title = document.createElement('div');
+  title.className = 'card-title';
+  title.innerHTML = `${fm.name} <span class="finger-dot" id="dot-${fm.idx}"></span>`;
+  card.appendChild(title);
+
+  const bars = [], vals = [];
+  for (let s = 0; s < 3; s++) {
+    const row = document.createElement('div');
+    row.className = 'angle-row';
+    const lbl = document.createElement('span');
+    lbl.className = 'angle-label';
+    lbl.textContent = fm.labels[s];
+    const barBg = document.createElement('div');
+    barBg.className = 'angle-bar-bg';
+    const bar = document.createElement('div');
+    bar.className = 'angle-bar';
+    barBg.appendChild(bar);
+    const val = document.createElement('span');
+    val.className = 'angle-val';
+    val.textContent = '0°';
+    row.appendChild(lbl);
+    row.appendChild(barBg);
+    row.appendChild(val);
+    card.appendChild(row);
+    bars.push(bar);
+    vals.push(val);
+  }
+
+  // Insert before the touch card (first static child)
+  sidebar.insertBefore(card, sidebar.firstChild);
+  uiFinger[fm.idx] = { dot: title.querySelector('.finger-dot'), bars, vals };
+}
+
+// Build touch cells
+const touchGrid = document.getElementById('touch-grid');
+const touchFills = [];
+for (let i = 0; i < 6; i++) {
+  const cell = document.createElement('div');
+  cell.className = 'touch-cell';
+  const fill = document.createElement('div');
+  fill.className = 'touch-fill';
+  const lbl = document.createElement('span');
+  lbl.className = 'touch-label';
+  lbl.textContent = String(i);
+  cell.appendChild(fill);
+  cell.appendChild(lbl);
+  touchGrid.appendChild(cell);
+  touchFills.push(fill);
+}
+
+// ── Three.js ──────────────────────────────────────────────────────────────────
+
+const canvas  = document.getElementById('canvas');
+const wrapper = canvas.parentElement;
+
+// Verify WebGL support before initialising Three.js
+if (!canvas.getContext('webgl2') && !canvas.getContext('webgl')) {
+  wrapper.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#f43f5e;font-size:14px;text-align:center;padding:20px;">WebGL is not supported or disabled in this browser.<br>The 3D hand viewer requires WebGL.</div>';
+  throw new Error('WebGL not supported');
+}
+
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+} catch (e) {
+  wrapper.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#f43f5e;font-size:14px;text-align:center;padding:20px;">Failed to initialise WebGL renderer.<br>' + e.message + '</div>';
+  throw e;
+}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+const scene  = new THREE.Scene();
+scene.background = new THREE.Color(0x07090e);
+scene.fog = new THREE.FogExp2(0x07090e, 0.006);
+
+const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 300);
+camera.position.set(0, 10, 30);
+
+const controls = new OrbitControls(camera, canvas);
+controls.target.set(0, 5, 0);
+controls.enableDamping  = true;
+controls.dampingFactor  = 0.07;
+controls.minDistance    = 12;
+controls.maxDistance    = 70;
+
+function resize() {
+  const w = wrapper.clientWidth, h = wrapper.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Lighting
+const ambient = new THREE.AmbientLight(0x1a2a50, 2.0);
+scene.add(ambient);
+
+const sun = new THREE.DirectionalLight(0xffffff, 3.5);
+sun.position.set(6, 18, 12);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+scene.add(sun);
+
+const rim = new THREE.DirectionalLight(0x0ea5e9, 1.0);
+rim.position.set(-10, 4, -8);
+scene.add(rim);
+
+const fill = new THREE.DirectionalLight(0x3b82f6, 0.5);
+fill.position.set(0, -6, 8);
+scene.add(fill);
+
+// Ground grid
+const grid = new THREE.GridHelper(50, 25, 0x151e30, 0x0f1520);
+grid.position.y = -8;
+scene.add(grid);
+
+// ── Materials ─────────────────────────────────────────────────────────────────
+
+const matPalm = new THREE.MeshPhysicalMaterial({
+  color: 0x152040, roughness: 0.65, metalness: 0.2,
+});
+const matBone = new THREE.MeshPhysicalMaterial({
+  color: 0x1d3060, roughness: 0.6, metalness: 0.2,
+});
+const matJoint = new THREE.MeshPhysicalMaterial({
+  color: 0x263a70, roughness: 0.5, metalness: 0.3,
+});
+// Active material (bone receiving live data) — updated per-frame via emissive
+const matBoneActive = new THREE.MeshPhysicalMaterial({
+  color: 0x1d3060, roughness: 0.6, metalness: 0.2,
+  emissive: 0x0a2050, emissiveIntensity: 0.0,
+});
+
+// ── Hand geometry builder ─────────────────────────────────────────────────────
+
+// Finger layout: each entry defines where the finger attaches on the palm
+// and its phalanx segments {w, h, d} in "hand units" (≈ cm)
+// rotZ = natural abduction tilt; rotX = forward lean
+const FINGER_LAYOUT = [
+  { idx: 0, baseX: -3.8, baseY: 1.2,  rotZ:  0.55, rotX: -0.25,
+    segs: [{w:1.8, h:3.2, d:1.4}, {w:1.5, h:2.6, d:1.2}] },
+  { idx: 1, baseX: -2.3, baseY: 4.5,  rotZ:  0.04, rotX:  0.0,
+    segs: [{w:1.6, h:4.5, d:1.3}, {w:1.4, h:2.9, d:1.1}, {w:1.15, h:2.0, d:0.9}] },
+  { idx: 2, baseX:  0.0, baseY: 4.65, rotZ:  0.0,  rotX:  0.0,
+    segs: [{w:1.6, h:5.0, d:1.3}, {w:1.4, h:3.2, d:1.1}, {w:1.15, h:2.2, d:0.9}] },
+  { idx: 3, baseX:  2.3, baseY: 4.5,  rotZ: -0.04, rotX:  0.0,
+    segs: [{w:1.5, h:4.5, d:1.2}, {w:1.3, h:2.8, d:1.0}, {w:1.05, h:2.0, d:0.85}] },
+  { idx: 4, baseX:  3.8, baseY: 3.8,  rotZ: -0.14, rotX:  0.0,
+    segs: [{w:1.3, h:3.6, d:1.1}, {w:1.1, h:2.2, d:0.9}, {w:0.9, h:1.6, d:0.75}] },
+];
+
+const handGroup = new THREE.Group();
+scene.add(handGroup);
+
+// Palm box
+const palmMesh = new THREE.Mesh(new THREE.BoxGeometry(8.6, 9.2, 1.8), matPalm);
+palmMesh.castShadow = palmMesh.receiveShadow = true;
+handGroup.add(palmMesh);
+
+// Wrist knob
+const wristMesh = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.2, 1.6, 12), matPalm);
+wristMesh.position.set(0, -5.2, 0);
+wristMesh.castShadow = true;
+handGroup.add(wristMesh);
+
+// fingerJoints[fingerIdx] = array of THREE.Group (one per phalanx, rotates on X for flex)
+const fingerJoints  = {};
+// thumbAbdGroup: the group that rotates on Z for thumb abduction
+const thumbAbdGroup = {};
+// per-finger bone meshes (for emissive highlight)
+const fingerMeshes = {};
+
+for (const def of FINGER_LAYOUT) {
+  const joints  = [];
+  const meshes  = [];
+
+  // Abduction group: sets natural tilt; for thumb also receives abduction sensor
+  const abdGroup = new THREE.Group();
+  abdGroup.position.set(def.baseX, def.baseY, 0);
+  abdGroup.rotation.z = def.rotZ;
+  abdGroup.rotation.x = def.rotX;
+  palmMesh.add(abdGroup);
+
+  if (def.idx === 0) thumbAbdGroup[0] = abdGroup;
+
+  let parent = abdGroup;
+  let prevH  = 0;
+
+  for (let s = 0; s < def.segs.length; s++) {
+    const seg = def.segs[s];
+
+    // Joint rotation group — rotating this bends the finger at this joint
+    const rotGroup = new THREE.Group();
+    rotGroup.position.y = prevH;
+    parent.add(rotGroup);
+
+    // Phalanx bone (geometry pivot at y=0, extends to y=seg.h)
+    const bGeom = new THREE.BoxGeometry(seg.w, seg.h, seg.d);
+    bGeom.translate(0, seg.h / 2, 0);
+    const bMesh = new THREE.Mesh(bGeom, matBone.clone());
+    bMesh.castShadow = true;
+    rotGroup.add(bMesh);
+    meshes.push(bMesh);
+
+    // Sphere at joint knuckle
+    const kMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(seg.w * 0.38, 10, 10), matJoint
+    );
+    rotGroup.add(kMesh);
+
+    // Rounded fingertip cap on last segment
+    if (s === def.segs.length - 1) {
+      const tip = new THREE.Mesh(
+        new THREE.SphereGeometry(seg.w * 0.44, 10, 10), bMesh.material
+      );
+      tip.position.y = seg.h;
+      rotGroup.add(tip);
+    }
+
+    joints.push(rotGroup);
+    parent = rotGroup;
+    prevH  = seg.h;
+  }
+
+  fingerJoints[def.idx] = joints;
+  fingerMeshes[def.idx] = meshes;
+}
+
+// ── Animation: lerp current rotations toward sensor targets ──────────────────
+
+const DEG2RAD     = Math.PI / 180;
+const LERP_FACTOR = 0.14;  // smoothing: 0=no movement, 1=instant snap
+
+function applyFingerAngles() {
+  for (const def of FINGER_LAYOUT) {
+    const joints  = fingerJoints[def.idx];
+    const targets = targetDeg[def.idx];
+    if (!joints) continue;
+
+    if (def.idx === 0) {
+      // Thumb: targets[0]=abduction, targets[1]=proximal flex, targets[2]=distal flex
+      const abdTarget = def.rotZ + (targets[0] || 0) * DEG2RAD * 0.35;
+      thumbAbdGroup[0].rotation.z += (abdTarget - thumbAbdGroup[0].rotation.z) * LERP_FACTOR;
+      if (joints[0]) joints[0].rotation.x += ((targets[1] || 0) * DEG2RAD - joints[0].rotation.x) * LERP_FACTOR;
+      if (joints[1]) joints[1].rotation.x += ((targets[2] || 0) * DEG2RAD - joints[1].rotation.x) * LERP_FACTOR;
+    } else {
+      // Other fingers: targets[0..2] = proximal/middle/distal flex
+      for (let s = 0; s < joints.length; s++) {
+        const t = (targets[s] || 0) * DEG2RAD;
+        joints[s].rotation.x += (t - joints[s].rotation.x) * LERP_FACTOR;
+      }
+    }
+  }
+}
+
+// ── UI update (sidebar values, chips) ────────────────────────────────────────
+
+let pktSnapshot = 0;
+let pktSnapshotTime = Date.now();
+
+function updateUI() {
+  const now = Date.now();
+
+  // Signal / pkt rate
+  const live = (now - sensorState.lastFrame) < 2000;
+  const chipSig = document.getElementById('chip-signal');
+  chipSig.textContent = live ? 'Live' : 'No Signal';
+  chipSig.className   = 'chip ' + (live ? 'green' : 'red');
+
+  if (now - pktSnapshotTime >= 1000) {
+    const rate = sensorState.pktTotal - pktSnapshot;
+    document.getElementById('chip-pkt').textContent = rate + ' pkt/s';
+    pktSnapshot     = sensorState.pktTotal;
+    pktSnapshotTime = now;
+  }
+
+  // Finger cards
+  for (const [idxStr, fc] of Object.entries(uiFinger)) {
+    const fi     = parseInt(idxStr);
+    const fs     = sensorState.fingers[fi];
+    const isLive = fs && (now - fs.ts) < 2000;
+
+    fc.dot.className = 'finger-dot' + (isLive ? ' live' : '');
+
+    const angles = fs?.angles || [0, 0, 0];
+    for (let s = 0; s < 3; s++) {
+      const a   = angles[s] ?? 0;
+      const pct = Math.max(0, Math.min(100, (a / 90) * 100));
+      fc.bars[s].style.width   = pct + '%';
+      fc.vals[s].textContent   = a.toFixed(0) + '°';
+    }
+
+    // Highlight active finger bones
+    const emissive = isLive ? 0.25 : 0.0;
+    for (const m of (fingerMeshes[fi] || [])) {
+      m.material.emissive.set(isLive ? 0x0a3060 : 0x000000);
+      m.material.emissiveIntensity = emissive;
+    }
+  }
+
+  // Touch channels
+  for (let i = 0; i < 6; i++) {
+    const v = sensorState.touch[i] ?? 0;
+    touchFills[i].style.height = (v * 100).toFixed(0) + '%';
+  }
+
+  // IMU
+  const { acc, gyro } = sensorState.imu;
+  document.getElementById('imu-ax').textContent = acc[0]?.toFixed(0)  ?? '—';
+  document.getElementById('imu-ay').textContent = acc[1]?.toFixed(0)  ?? '—';
+  document.getElementById('imu-az').textContent = acc[2]?.toFixed(0)  ?? '—';
+  document.getElementById('imu-gx').textContent = gyro[0]?.toFixed(0) ?? '—';
+  document.getElementById('imu-gy').textContent = gyro[1]?.toFixed(0) ?? '—';
+  document.getElementById('imu-gz').textContent = gyro[2]?.toFixed(0) ?? '—';
+}
+
+// ── Render loop ───────────────────────────────────────────────────────────────
+
+let fpsFrames = 0, fpsLast = 0;
+
+function animate(t) {
+  requestAnimationFrame(animate);
+  controls.update();
+  applyFingerAngles();
+  updateUI();
+
+  // FPS counter (update every second)
+  fpsFrames++;
+  if (t - fpsLast >= 1000) {
+    document.getElementById('chip-fps').textContent = fpsFrames + ' fps';
+    fpsFrames = 0;
+    fpsLast   = t;
+  }
+
+  renderer.render(scene, camera);
+}
+
+requestAnimationFrame(animate);
+
+// ── SocketIO: sensor_frame from exo_telemetry bridge ─────────────────────────
+// exo_capture.py sends sensor_frame packets to UDP 9002.
+// server.py bridges that port to SocketIO event "exo_telemetry".
+// Packets look like: { type: "sensor_frame", frame: { sensors: [...] } }
+
+const socket = io();
+
+// "hand_frame" is bridged from ZMQ 5555 by server.py.
+// Payload: { type: "sensor_frame", frame: { sensors: [...] } }
+socket.on('hand_frame', (data) => {
+  if (!data || data.type !== 'sensor_frame') return;
+
+  const frame = data.frame;
+  if (!frame || !Array.isArray(frame.sensors)) return;
+
+  sensorState.lastFrame = Date.now();
+  sensorState.pktTotal++;
+
+  for (const sensor of frame.sensors) {
+    if (!sensor || typeof sensor.type !== 'string') continue;
+
+    if (sensor.type === 'angles') {
+      const fi = sensor.finger;
+      if (typeof fi !== 'number' || fi < 0 || fi > 4 || !Array.isArray(sensor.samples)) continue;
+      const latest = sensor.samples[sensor.samples.length - 1];
+      if (latest && Array.isArray(latest.angles_deg)) {
+        sensorState.fingers[fi].angles = latest.angles_deg;
+        sensorState.fingers[fi].ts     = Date.now();
+        const deg = latest.angles_deg;
+        for (let i = 0; i < 3; i++) targetDeg[fi][i] = (typeof deg[i] === 'number' ? deg[i] : 0);
+      }
+
+    } else if (sensor.type === 'touch6') {
+      if (Array.isArray(sensor.channels) && sensor.channels.length === 6) {
+        sensorState.touch = sensor.channels;
+      }
+
+    } else if (sensor.type === 'imu6') {
+      if (!Array.isArray(sensor.samples)) continue;
+      const latest = sensor.samples[sensor.samples.length - 1];
+      if (latest && Array.isArray(latest.acc) && Array.isArray(latest.gyro)) {
+        sensorState.imu.acc  = latest.acc;
+        sensorState.imu.gyro = latest.gyro;
+      }
+    }
+  }
+});
+
+</script>
+</body>
+</html>

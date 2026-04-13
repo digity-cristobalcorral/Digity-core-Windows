@@ -1,0 +1,14 @@
+flask>=3.0.0
+flask-socketio>=5.3.5
+python-socketio>=5.11.0
+pyzmq>=25.0
+pyserial>=3.5
+numpy>=1.24
+orjson>=3.9
+pyrealsense2>=2.54
+opencv-python-headless>=4.8
+ahrs>=0.3
+pywebview>=0.7
+pyqt5>=5.15
+qtpy>=2.4
+pyqtwebengine>=5.15
