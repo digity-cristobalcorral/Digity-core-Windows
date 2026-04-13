@@ -8,6 +8,7 @@ import glob
 import json
 import logging
 import os
+import platform
 import secrets
 import socket
 import threading
@@ -28,6 +29,7 @@ from core.config import (
 )
 from core.service_manager import ServiceManager
 from core import user_config
+from core.platform_helpers import serial_port_exists
 
 log = logging.getLogger(__name__)
 
@@ -84,8 +86,8 @@ class HardwareMonitor:
             time.sleep(1)
             updates = {}
 
-            # EXO / glove: serial device file present?
-            exo_connected = Path(EXO_SERIAL_PORT).exists()
+            # EXO / glove: serial device present?
+            exo_connected = serial_port_exists(EXO_SERIAL_PORT)
             updates["exo_capture"] = exo_connected
 
             # Cameras: USB RealSense devices present + recent preview frames
@@ -111,7 +113,14 @@ class HardwareMonitor:
                         })
 
     def _count_realsense_devices(self) -> int:
-        """Count connected RealSense cameras via /sys/bus/usb/devices."""
+        """Count connected RealSense cameras.
+
+        On Linux reads /sys/bus/usb/devices directly (no extra dependencies).
+        On Windows returns 0 — detection falls back to preview frame timeout
+        (the cam1_frame / cam2_frame logic above still works correctly).
+        """
+        if platform.system() != "Linux":
+            return 0
         try:
             count = 0
             for vendor_file in glob.glob("/sys/bus/usb/devices/*/idVendor"):

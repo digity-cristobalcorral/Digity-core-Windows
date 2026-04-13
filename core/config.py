@@ -5,12 +5,14 @@ All ports, paths, and service definitions live here.
 import os
 from pathlib import Path
 
+from core.platform_helpers import get_config_dir, get_default_data_dir
+
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR      = Path(__file__).parent.parent
 PRODUCER_DIR  = BASE_DIR / "producer"
 LOG_DIR       = BASE_DIR / "logs"
-DATA_DIR      = Path(os.environ.get("GLOVE_DATA_DIR", "/mnt/data"))
-CALIB_FILE    = Path.home() / ".glove" / "calibration.json"
+DATA_DIR      = get_default_data_dir()
+CALIB_FILE    = get_config_dir() / "calibration.json"
 
 # ── Web dashboard ─────────────────────────────────────────────────────────────
 DASHBOARD_HOST = "0.0.0.0"
@@ -33,7 +35,8 @@ ZMQ_JOINTS_ADDR   = "tcp://0.0.0.0:5556"     # processed joints (Phase 2)
 ZMQ_STATUS_PORT   = 5557                      # zmq_publisher → dashboard subscriber status
 
 # ── Serial (EXO / glove) ──────────────────────────────────────────────────────
-EXO_SERIAL_PORT = os.environ.get("GLOVE_SERIAL_PORT", "/dev/ttyUSB0")
+from core.platform_helpers import get_default_serial_port as _default_port
+EXO_SERIAL_PORT = os.environ.get("GLOVE_SERIAL_PORT") or _default_port()
 EXO_BAUD        = int(os.environ.get("GLOVE_BAUD", 921600))
 
 # ── Service definitions ───────────────────────────────────────────────────────

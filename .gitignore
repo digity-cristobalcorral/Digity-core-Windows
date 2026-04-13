@@ -27,5 +27,9 @@ Thumbs.db
 .idea/
 *.swp
 
+# Windows build artifacts
+build/prereqs/
+build/output/
+
 # Internal project notes (not for clients)
 CLAUDE.md

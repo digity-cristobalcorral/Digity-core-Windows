@@ -8,13 +8,15 @@ to pick up new values — no code editing required.
 import json
 from pathlib import Path
 
-CONFIG_PATH = Path.home() / ".glove" / "config.json"
+from core.platform_helpers import get_config_dir, get_default_serial_port
+
+CONFIG_PATH = get_config_dir() / "config.json"
 
 DEFAULTS: dict = {
     "station_name":       "Station 1",
     "camera_pov_serial":  "843112072148",
     "camera_pov2_serial": "818312070414",
-    "exo_serial_port":    "/dev/ttyUSB0",
+    "exo_serial_port":    get_default_serial_port(),
     "exo_baud":           921600,
 }
 
