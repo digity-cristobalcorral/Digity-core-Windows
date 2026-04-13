@@ -89,7 +89,7 @@ Name: "{group}\{#AppName}"; \
 
 Name: "{group}\Uninstall {#AppName}"; Filename: "{uninstallexe}"
 
-Name: "{commondesktop}\{#AppName}"; \
+Name: "{userdesktop}\{#AppName}"; \
     Filename: "{app}\launch.bat"; WorkingDir: "{app}"; \
     Tasks: desktopicon; Comment: "Open the Digity Core dashboard"
 
