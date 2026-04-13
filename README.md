@@ -47,21 +47,23 @@ The installer will:
 
 ## Starting the app
 
-### Browser mode (recommended)
+Activate the virtual environment and launch:
 
 ```bash
-./run.sh
+source .venv/bin/activate
+python3 main.py --app
 ```
 
-Open [http://localhost:5000](http://localhost:5000) in your browser.
+This opens the dashboard as a native desktop window.
 
-### Desktop window mode
+To use the browser instead (no display required):
 
 ```bash
-./run-app.sh
+source .venv/bin/activate
+python3 main.py
 ```
 
-Requires a graphical session (X11 or Wayland) and Qt5 WebEngine.
+Then open [http://localhost:5000](http://localhost:5000) in your browser.
 
 ---
 

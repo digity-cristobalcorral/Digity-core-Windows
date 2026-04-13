@@ -171,38 +171,7 @@ ok "All packages from requirements.txt installed."
 
 # ── Launch script ─────────────────────────────────────────────────────────────
 header "Launch scripts"
-
-# run.sh — web mode (browser)
-cat > "$PROJECT_DIR/run.sh" << 'LAUNCH'
-#!/usr/bin/env bash
-# Glove-Core — web mode (open http://localhost:5000 in your browser)
-set -euo pipefail
-cd "$(dirname "${BASH_SOURCE[0]}")"
-source .venv/bin/activate
-export PYWEBVIEW_GUI=qt
-exec python3 main.py "$@"
-LAUNCH
-chmod +x "$PROJECT_DIR/run.sh"
-
-# run-app.sh — desktop window mode (requires display)
-cat > "$PROJECT_DIR/run-app.sh" << 'LAUNCH'
-#!/usr/bin/env bash
-# Glove-Core — desktop window mode (pywebview native window)
-# Requires a graphical session (X11 or Wayland) and Qt5 WebEngine.
-set -euo pipefail
-cd "$(dirname "${BASH_SOURCE[0]}")"
-source .venv/bin/activate
-export PYWEBVIEW_GUI=qt
-exec python3 main.py --app "$@"
-LAUNCH
-chmod +x "$PROJECT_DIR/run-app.sh"
-
-chown "$REAL_USER:$REAL_USER" \
-    "$PROJECT_DIR/run.sh" \
-    "$PROJECT_DIR/run-app.sh"
-
-ok "run.sh        — web mode (recommended)"
-ok "run-app.sh    — desktop window mode"
+ok "To start:  source .venv/bin/activate && python3 main.py --app"
 
 # ── Verify key imports ────────────────────────────────────────────────────────
 header "Verifying installation"
@@ -246,13 +215,14 @@ else
 fi
 echo -e "${BOLD}  ╠══════════════════════════════════════════════════════╣"
 echo -e "  ║                                                      ║"
-echo -e "  ║  Start (browser mode):                               ║"
+echo -e "  ║  Start:                                              ║"
 echo -e "  ║    cd $PROJECT_DIR"
-echo -e "  ║    ./run.sh                                          ║"
-echo -e "  ║    → open  http://localhost:5000                     ║"
+echo -e "  ║    source .venv/bin/activate                         ║"
+echo -e "  ║    python3 main.py --app                             ║"
 echo -e "  ║                                                      ║"
-echo -e "  ║  Start (desktop window):                             ║"
-echo -e "  ║    ./run-app.sh    (needs display / X11)             ║"
+echo -e "  ║  Browser mode (no display):                          ║"
+echo -e "  ║    python3 main.py                                   ║"
+echo -e "  ║    → open  http://localhost:5000                     ║"
 echo -e "  ║                                                      ║"
 echo -e "  ║  Hardware:                                           ║"
 echo -e "  ║    ESP32 gateway → /dev/ttyUSB0  (921600 baud)       ║"
