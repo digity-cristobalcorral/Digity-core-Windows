@@ -101,6 +101,7 @@ xcopy "%PROJECT_DIR%core"     "%DIST_DIR%\core\"     /E /I /Y /Q >nul
 xcopy "%PROJECT_DIR%producer" "%DIST_DIR%\producer\" /E /I /Y /Q >nul
 xcopy "%PROJECT_DIR%tools"    "%DIST_DIR%\tools\"    /E /I /Y /Q >nul
 copy "%SCRIPT_DIR%launch.bat" "%DIST_DIR%\" >nul
+copy "%SCRIPT_DIR%launch.vbs" "%DIST_DIR%\" >nul
 if %ERRORLEVEL% NEQ 0 (echo [ERROR] File copy failed & exit /b 1)
 
 rem ── Step 5: Compile installer ─────────────────────────────────────────────────

@@ -65,8 +65,9 @@ Source: "dist\core\*";      DestDir: "{app}\core";      Flags: ignoreversion rec
 Source: "dist\producer\*";  DestDir: "{app}\producer";  Flags: ignoreversion recursesubdirs
 Source: "dist\tools\*";     DestDir: "{app}\tools";     Flags: ignoreversion recursesubdirs
 
-; Windows launcher
+; Launchers
 Source: "dist\launch.bat";  DestDir: "{app}";           Flags: ignoreversion
+Source: "launch.vbs";       DestDir: "{app}";           Flags: ignoreversion
 
 ; ── (Optional) USB drivers ────────────────────────────────────────────────────
 ; Download CH340 driver from https://www.wch-ic.com/products/CH341.html
@@ -83,14 +84,19 @@ Name: "{userappdata}\GloveCore\data\session"
 
 ; ── Shortcuts ─────────────────────────────────────────────────────────────────
 [Icons]
+; pythonw.exe = Python sin consola — no aparece ninguna ventana negra
 Name: "{group}\{#AppName}"; \
-    Filename: "{app}\launch.bat"; WorkingDir: "{app}"; \
+    Filename: "{app}\python\pythonw.exe"; \
+    Parameters: """{app}\main.py"" --app"; \
+    WorkingDir: "{app}"; \
     Comment: "Open the Digity Core dashboard"
 
 Name: "{group}\Uninstall {#AppName}"; Filename: "{uninstallexe}"
 
 Name: "{userdesktop}\{#AppName}"; \
-    Filename: "{app}\launch.bat"; WorkingDir: "{app}"; \
+    Filename: "{app}\python\pythonw.exe"; \
+    Parameters: """{app}\main.py"" --app"; \
+    WorkingDir: "{app}"; \
     Tasks: desktopicon; Comment: "Open the Digity Core dashboard"
 
 ; ── Post-install actions ──────────────────────────────────────────────────────
@@ -100,7 +106,9 @@ Name: "{userdesktop}\{#AppName}"; \
 ;     StatusMsg: "Installing USB serial driver..."; \
 ;     Flags: waituntilterminated
 
-; Offer to launch the app immediately after install
-Filename: "{app}\launch.bat"; \
+; Offer to launch the app immediately after install (sin consola)
+Filename: "{app}\python\pythonw.exe"; \
+    Parameters: """{app}\main.py"" --app"; \
+    WorkingDir: "{app}"; \
     Description: "Launch {#AppName} now"; \
     Flags: postinstall nowait skipifsilent unchecked
