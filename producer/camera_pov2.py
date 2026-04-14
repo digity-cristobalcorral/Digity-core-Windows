@@ -64,6 +64,7 @@ import pyrealsense2 as rs
 # RealSense device serial — read from ~/.glove/config.json (editable via Setup UI)
 import sys as _sys; _sys.path.insert(0, str(__import__('pathlib').Path(__file__).parent.parent))
 from core.user_config import load as _load_cfg
+from core.platform_helpers import get_default_data_dir as _get_data_dir
 DEVICE_SERIAL = _load_cfg().get("camera_pov2_serial", "818312070414")
 
 # Capture resolutions / fps
@@ -78,7 +79,7 @@ VIEW_DEPTH_W, VIEW_DEPTH_H = 848, 480
 DISABLE_PREVIEW_WHEN_RECORDING = True
 
 # Base directory where all sessions are stored (matching consumer layout)
-BASE_DIR = "/mnt/data"
+BASE_DIR = str(_get_data_dir())
 SESSION_ROOT = os.path.join(BASE_DIR, "session")
 os.makedirs(SESSION_ROOT, exist_ok=True)
 

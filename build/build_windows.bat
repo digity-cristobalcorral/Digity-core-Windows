@@ -96,6 +96,7 @@ rem ── Step 4: Copy project files ──────────────
 echo [4/5] Copying project files...
 for %%F in ("%PROJECT_DIR%*.py")          do copy "%%F" "%DIST_DIR%\" >nul
 copy "%PROJECT_DIR%requirements.txt"          "%DIST_DIR%\" >nul
+copy "%PROJECT_DIR%version.txt"               "%DIST_DIR%\" >nul
 xcopy "%PROJECT_DIR%app"      "%DIST_DIR%\app\"      /E /I /Y /Q >nul
 xcopy "%PROJECT_DIR%core"     "%DIST_DIR%\core\"     /E /I /Y /Q >nul
 xcopy "%PROJECT_DIR%producer" "%DIST_DIR%\producer\" /E /I /Y /Q >nul

@@ -45,6 +45,8 @@ except Exception as _e:
     print(f"[WARN] humi_protocol not available, sensor parsing disabled: {_e}")
     _PARSER_OK = False
 
+from core.platform_helpers import get_default_data_dir as _get_data_dir
+
 try:
     from serial import Serial, SerialException  # PySerial
 except Exception as e:
@@ -74,7 +76,7 @@ p.add_argument("--control_host", default="127.0.0.1")
 p.add_argument("--control_port", type=int, default=9052)
 
 # Storage base
-p.add_argument("--base_dir", default="/mnt/data", help="Base directory for session storage (default: /mnt/data)")
+p.add_argument("--base_dir", default=str(_get_data_dir()), help="Base directory for session storage")
 
 # RAW capture tuning
 p.add_argument("--chunk", type=int, default=65536, help="Serial read size per call")
@@ -539,6 +541,9 @@ def on_sigint(sig, frame):
 
 
 signal.signal(signal.SIGINT, on_sigint)
+# SIGTERM is sent by ServiceManager.stop() on both Linux and Windows
+if hasattr(signal, "SIGTERM"):
+    signal.signal(signal.SIGTERM, on_sigint)
 
 
 def main():

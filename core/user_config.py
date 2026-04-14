@@ -26,7 +26,7 @@ def load() -> dict:
     cfg = dict(DEFAULTS)
     if CONFIG_PATH.exists():
         try:
-            saved = json.loads(CONFIG_PATH.read_text())
+            saved = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
             cfg.update({k: v for k, v in saved.items() if k in DEFAULTS})
         except Exception:
             pass
@@ -38,4 +38,4 @@ def save(data: dict) -> None:
     CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
     current = load()
     current.update({k: v for k, v in data.items() if k in DEFAULTS})
-    CONFIG_PATH.write_text(json.dumps(current, indent=2))
+    CONFIG_PATH.write_text(json.dumps(current, indent=2), encoding="utf-8")

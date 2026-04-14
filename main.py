@@ -48,7 +48,7 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
     handlers=[
         logging.StreamHandler(sys.stdout),
-        logging.FileHandler(LOG_DIR / "glove-core.log"),
+        logging.FileHandler(LOG_DIR / "glove-core.log", encoding="utf-8"),
     ],
 )
 log = logging.getLogger("glove-core")

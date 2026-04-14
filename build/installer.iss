@@ -14,7 +14,7 @@
 #define AppName      "Digity Core"
 #define AppVersion   "1.0.0"
 #define AppPublisher "Digity"
-#define AppURL       "https://digity.com"
+#define AppURL       "https://github.com/digity-cristobalcorral/Digity-core-Windows"
 
 ; ── Setup ────────────────────────────────────────────────────────────────────
 [Setup]
@@ -60,6 +60,7 @@ Source: "dist\python\*";    DestDir: "{app}\python";    Flags: ignoreversion rec
 
 ; Project source files
 Source: "dist\*.py";        DestDir: "{app}";           Flags: ignoreversion
+Source: "dist\version.txt"; DestDir: "{app}";           Flags: ignoreversion
 Source: "dist\*.txt";       DestDir: "{app}";           Flags: ignoreversion
 Source: "dist\app\*";       DestDir: "{app}\app";       Flags: ignoreversion recursesubdirs
 Source: "dist\core\*";      DestDir: "{app}\core";      Flags: ignoreversion recursesubdirs
@@ -77,6 +78,13 @@ Source: "launch.vbs";       DestDir: "{app}";           Flags: ignoreversion
 ; Download CH340 driver from https://www.wch-ic.com/products/CH341.html
 ; Place CH341SER.EXE in build\prereqs\ and uncomment these lines:
 ; Source: "prereqs\CH341SER.EXE"; DestDir: "{tmp}"; Flags: deleteafterinstall
+
+; ── Registry — set DIGITY_UPDATE_URL for auto-updater ────────────────────────
+[Registry]
+Root: HKCU; Subkey: "Environment"; ValueType: string; \
+    ValueName: "DIGITY_UPDATE_URL"; \
+    ValueData: "https://github.com/digity-cristobalcorral/Digity-core-Windows/releases/latest/download/latest.json"; \
+    Flags: uninsdeletevalue
 
 ; ── Directories ───────────────────────────────────────────────────────────────
 [Dirs]

@@ -33,6 +33,10 @@ UDP_PORT = 5005
 _HERE     = Path(__file__).parent
 _ROOT     = _HERE.parent
 LOCK_ROOT = str(_ROOT / "tmp" / "locks")
+
+import sys as _sys_; _sys_.path.insert(0, str(_ROOT))
+from core.platform_helpers import get_default_serial_port as _default_serial_port
+from core.platform_helpers import get_default_data_dir as _default_data_dir
 os.makedirs(LOCK_ROOT, exist_ok=True)
 
 # Camera-like producers
@@ -52,10 +56,10 @@ EXO_SCRIPT = str(_ROOT / "producer" / "exo_capture.py")
 # Defaults for EXO RAW
 # - serial/baud MUST match your gateway USB serial settings
 DEFAULT_EXO = {
-    "serial": "/dev/ttyUSB0",
+    "serial": _default_serial_port(),
     "baud": "921600",
     "timeout": "0.2",
-    "base_dir": "/mnt/data",
+    "base_dir": str(_default_data_dir()),
     # optional performance knobs
     "chunk": "65536",
     "file_buffer_mb": "4",
@@ -165,7 +169,7 @@ def build_exo_args(meta: dict):
         if k in meta:
             merged[k] = str(meta[k])
 
-    args = ["python3", EXO_SCRIPT]
+    args = [sys.executable, EXO_SCRIPT]
 
     # Map known keys to CLI flags of exo_capture_raw.py
     # (We only pass what that script understands)

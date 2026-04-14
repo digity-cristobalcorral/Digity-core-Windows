@@ -261,6 +261,25 @@ def create_app(manager: ServiceManager) -> tuple[Flask, SocketIO]:
     def get_config():
         return jsonify(user_config.load())
 
+    # ── Update API ────────────────────────────────────────────────────────────
+    from core import updater as _updater
+
+    @app.route("/api/update/status", methods=["GET"])
+    def update_status():
+        return jsonify(_updater.check())
+
+    @app.route("/api/update/apply", methods=["POST"])
+    def update_apply():
+        status = _updater.check()
+        if not status["available"]:
+            return jsonify({"ok": False, "error": "No update available"}), 400
+        try:
+            _updater.apply(status["zip_url"])
+            return jsonify({"ok": True, "version": status["latest"]})
+        except Exception as exc:
+            log.error("Update apply failed: %s", exc)
+            return jsonify({"ok": False, "error": str(exc)}), 500
+
     @app.route("/api/config", methods=["POST"])
     def post_config():
         data = request.get_json(force=True, silent=True) or {}
@@ -279,7 +298,7 @@ def create_app(manager: ServiceManager) -> tuple[Flask, SocketIO]:
 
     # ── Sessions file browser API ──────────────────────────────────────────────
 
-    SESSIONS_DIR = Path("/mnt/data/session")
+    SESSIONS_DIR = DATA_DIR / "session"
     _SESSIONS_DIR_RESOLVED = SESSIONS_DIR.resolve()
 
     def _resolve_session_path(subpath: str) -> Path | None:
@@ -298,14 +317,14 @@ def create_app(manager: ServiceManager) -> tuple[Flask, SocketIO]:
         if base is None:
             return jsonify({"error": "forbidden"}), 403
         if not base.exists():
-            return jsonify({"entries": [], "path": subpath, "exists": False})
+            return jsonify({"entries": [], "path": subpath, "exists": False, "root": str(SESSIONS_DIR)})
         entries = []
         try:
             for item in sorted(base.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True):
                 stat = item.stat()
                 entry = {
                     "name":  item.name,
-                    "path":  str(item.relative_to(SESSIONS_DIR)),
+                    "path":  item.relative_to(SESSIONS_DIR).as_posix(),
                     "is_dir": item.is_dir(),
                     "size":  stat.st_size,
                     "mtime": stat.st_mtime,
@@ -322,7 +341,7 @@ def create_app(manager: ServiceManager) -> tuple[Flask, SocketIO]:
                 entries.append(entry)
         except PermissionError as exc:
             return jsonify({"error": str(exc)}), 403
-        return jsonify({"entries": entries, "path": subpath, "exists": True})
+        return jsonify({"entries": entries, "path": subpath, "exists": True, "root": str(SESSIONS_DIR)})
 
     @app.route("/session/download", methods=["GET"])
     def download_session_file():
@@ -347,7 +366,7 @@ def create_app(manager: ServiceManager) -> tuple[Flask, SocketIO]:
         if target.suffix.lower() not in PREVIEW_EXTS:
             return jsonify({"error": "preview not supported for this file type"}), 415
         try:
-            content = target.read_text(errors="replace")
+            content = target.read_text(encoding="utf-8", errors="replace")
             if len(content) > 200_000:
                 content = content[:200_000] + "\n… (truncated)"
             return jsonify({"content": content, "name": target.name})
@@ -488,7 +507,8 @@ def _start_udp_bridge(
     def _run():
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        if hasattr(socket, "SO_REUSEPORT"):
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         sock.settimeout(1.0)
         try:
             sock.bind(("0.0.0.0", port))
@@ -522,7 +542,8 @@ def _start_preview_bridge(
     def _run():
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        if hasattr(socket, "SO_REUSEPORT"):
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         sock.settimeout(1.0)
         try:
             sock.bind(("0.0.0.0", port))

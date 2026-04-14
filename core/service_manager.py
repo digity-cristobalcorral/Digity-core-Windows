@@ -217,7 +217,7 @@ class ServiceManager:
         if not svc:
             return []
         try:
-            with open(svc._log_path) as f:
+            with open(svc._log_path, encoding="utf-8", errors="replace") as f:
                 return f.readlines()[-lines:]
         except FileNotFoundError:
             return []

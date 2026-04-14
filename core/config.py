@@ -36,8 +36,10 @@ ZMQ_STATUS_PORT   = 5557                      # zmq_publisher → dashboard subs
 
 # ── Serial (EXO / glove) ──────────────────────────────────────────────────────
 from core.platform_helpers import get_default_serial_port as _default_port
-EXO_SERIAL_PORT = os.environ.get("GLOVE_SERIAL_PORT") or _default_port()
-EXO_BAUD        = int(os.environ.get("GLOVE_BAUD", 921600))
+from core.user_config import load as _load_ucfg
+_ucfg           = _load_ucfg()
+EXO_SERIAL_PORT = os.environ.get("GLOVE_SERIAL_PORT") or _ucfg.get("exo_serial_port") or _default_port()
+EXO_BAUD        = int(os.environ.get("GLOVE_BAUD", _ucfg.get("exo_baud", 921600)))
 
 # ── Service definitions ───────────────────────────────────────────────────────
 # Each entry describes one managed subprocess.
@@ -72,8 +74,9 @@ SERVICES: dict[str, dict] = {
         "description": "ESP32 serial capture + ZMQ publisher",
         "script":      str(PRODUCER_DIR / "exo_capture.py"),
         "args":        [
-            "--serial", EXO_SERIAL_PORT,
-            "--baud",   str(EXO_BAUD),
+            "--serial",   EXO_SERIAL_PORT,
+            "--baud",     str(EXO_BAUD),
+            "--base_dir", str(DATA_DIR),
         ],
         "autostart":   True,
         "color":       "purple",
