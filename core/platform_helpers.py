@@ -41,15 +41,21 @@ def get_config_dir() -> Path:
 def get_default_serial_port() -> str:
     """Auto-detect the ESP32/glove serial port.
 
-    Scans connected serial devices for known USB-serial chips (CH340, CP210x, FTDI).
-    Falls back to the OS-appropriate default if nothing is found.
+    Scans connected serial devices for known USB-serial chips (CH340, CP210x, FTDI)
+    by description text OR USB vendor ID. Falls back to OS default if nothing found.
     """
     try:
         import serial.tools.list_ports
+        # Text keywords in description
         keywords = ("CH340", "CP210", "FTDI", "CH341", "ESP32", "USB SERIAL", "USB-SERIAL")
+        # USB Vendor IDs: CH340/CH341=1A86, CP210x=10C4, FTDI=0403, ESP32 built-in=303A
+        vid_set = {"1A86", "10C4", "0403", "303A"}
         for port in serial.tools.list_ports.comports():
             desc = f"{port.description or ''} {port.hwid or ''}".upper()
             if any(kw in desc for kw in keywords):
+                return port.device
+            # Match by VID embedded in hwid string (e.g. "USB VID:PID=1A86:7523")
+            if any(vid in desc for vid in vid_set):
                 return port.device
     except Exception:
         pass
