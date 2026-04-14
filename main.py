@@ -19,6 +19,16 @@ import time
 import webbrowser
 from pathlib import Path
 
+# ── Windows pythonw.exe: stdout/stderr are None (no console window) ──────────
+# Redirect to a log file so nothing crashes and all errors are captured.
+if sys.stdout is None:
+    import os as _os
+    _log_dir = Path(_os.environ.get("APPDATA") or Path.home()) / "GloveCore" / "logs"
+    _log_dir.mkdir(parents=True, exist_ok=True)
+    _log_file = open(_log_dir / "startup.log", "a", encoding="utf-8", buffering=1)
+    sys.stdout = _log_file
+    sys.stderr = _log_file
+
 # ── Ensure project root is in path ────────────────────────────────────────────
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT))

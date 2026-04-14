@@ -6,18 +6,58 @@ and exposes a real-time web dashboard for session control.
 
 ---
 
-## Requirements
+## Platform support
 
-| | Minimum |
+| OS | Installation method |
 |---|---|
-| OS | Debian 12 / Ubuntu 22.04 / Ubuntu 24.04 |
-| Python | 3.10 or newer |
-| GPU (optional) | Any — CUDA not required for capture |
-| Hardware | ESP32 gateway (USB serial), Intel RealSense D435i |
+| Debian 12 / Ubuntu 22.04+ | `install.sh` script |
+| Windows 10 / 11 | Self-contained `.exe` installer — no prerequisites needed |
 
 ---
 
-## Installation
+## Windows installation
+
+Download `DigityCore-Setup-1.0.0.exe` and double-click it. That is all.
+
+The installer:
+- Requires no Python, no admin rights, no prior setup
+- Installs to `C:\Users\<you>\AppData\Local\DigityCore\`
+- Creates a Start Menu shortcut and an optional desktop shortcut
+- Bundles a complete Python 3.11 runtime with all dependencies
+
+After installation, launch **Digity Core** from the Start Menu or desktop shortcut.
+The dashboard opens as a native desktop window at [http://localhost:5000](http://localhost:5000).
+
+### Troubleshooting the Windows app
+
+If the app does not open, run `launch.bat` from the install folder to see the error:
+
+```
+C:\Users\<you>\AppData\Local\DigityCore\launch.bat
+```
+
+Common issues on Windows:
+
+| Symptom | Fix |
+|---|---|
+| Serial port not found | Open Device Manager, find the ESP32 (COM port under Ports), set it in Setup |
+| CH340 driver missing | Install the CH340 driver from [wch-ic.com](https://www.wch-ic.com/products/CH341.html) |
+| Camera not detected | App will start without camera; connect RealSense and restart |
+
+### Building the installer (developers only)
+
+Run this once on a Windows machine with Python 3.11+ and Inno Setup 6 installed:
+
+```bat
+cd build
+build_windows.bat
+```
+
+Output: `build\output\DigityCore-Setup-1.0.0.exe`
+
+---
+
+## Linux installation
 
 ### 1. Clone the repository
 
@@ -43,11 +83,7 @@ The installer will:
 
 > **Important:** After installation, **log out and log back in** so group changes (`dialout`, `video`) take effect.
 
----
-
-## Starting the app
-
-Activate the virtual environment and launch:
+### 3. Start the app
 
 ```bash
 source .venv/bin/activate
@@ -76,16 +112,22 @@ Open **Setup** (top navigation) to configure your hardware:
 | Station Name | Label shown in session filenames |
 | Camera POV 1 Serial | RealSense D435i serial number for the primary camera |
 | Camera POV 2 Serial | RealSense D435i serial number for the secondary camera |
-| EXO Serial Port | USB serial port for the ESP32 gateway (e.g. `/dev/ttyUSB0`) |
+| EXO Serial Port | USB serial port for the ESP32 (Linux: `/dev/ttyUSB0`, Windows: `COM3`) |
 | EXO Baud Rate | Serial baud rate (default `921600`) |
 
-Settings are saved to `~/.glove/config.json` and applied immediately — affected services restart automatically.
+Settings are saved automatically and applied immediately — affected services restart on save.
 
-To find your RealSense serial number:
+Config file location:
+- Linux: `~/.glove/config.json`
+- Windows: `%APPDATA%\GloveCore\config.json`
+
+To find your RealSense serial number on Linux:
 
 ```bash
 rs-enumerate-devices | grep Serial
 ```
+
+On Windows, the serial number appears in the Intel RealSense Viewer application.
 
 ---
 
@@ -96,7 +138,9 @@ rs-enumerate-devices | grep Serial
 3. Click **Start Recording** — all connected producers begin capturing simultaneously
 4. Click **Stop Recording** to end the session
 
-Session data is stored at `/mnt/data/session/<user>_<session>_<station>/`:
+Session data is stored under the data directory:
+- Linux: `/mnt/data/session/` (or `$GLOVE_DATA_DIR`)
+- Windows: `%APPDATA%\GloveCore\data\session\` (or `GLOVE_DATA_DIR` env var)
 
 ```
 <session>/
@@ -117,51 +161,52 @@ Session data is stored at `/mnt/data/session/<user>_<session>_<station>/`:
 
 ### ESP32 gateway
 
-Connect the ESP32 via USB. It should appear as `/dev/ttyUSB0` (CH340) or `/dev/ttyACM0`.
-The udev rule also creates the symlink `/dev/ttyESP32`.
+Connect the ESP32 via USB.
 
-Verify:
+- **Linux:** appears as `/dev/ttyUSB0` (CH340) or `/dev/ttyACM0`. The udev rule also creates `/dev/ttyESP32`.
+- **Windows:** appears as `COM3` or similar. Check Device Manager → Ports if unsure.
+
+If Windows does not recognise the device, install the CH340 driver: [wch-ic.com](https://www.wch-ic.com/products/CH341.html)
+
+Verify on Linux:
 ```bash
 ls /dev/ttyUSB* /dev/ttyESP32 2>/dev/null
 ```
 
 ### RealSense D435i
 
-Connect via a USB 3.0 port. Verify detection:
+Connect via a USB 3.0 port (blue). USB 2.0 is not supported at full resolution.
+
+Verify on Linux:
 ```bash
 rs-enumerate-devices
 ```
 
-If the camera is not detected, check that the Intel RealSense SDK is installed:
+If the camera is not detected on Linux:
 ```bash
 sudo apt install librealsense2-utils
 ```
 
 ---
 
-## Troubleshooting
+## Troubleshooting (Linux)
 
 ### Permission denied on /dev/ttyUSB0
 
-Log out and log back in after installation so the `dialout` group takes effect. Verify:
+Log out and back in after installation so the `dialout` group takes effect:
 ```bash
 groups | grep dialout
 ```
 
-### Camera not detected
-
-Ensure you are using a USB 3.0 port (blue). USB 2.0 is not supported by the D435i at full resolution.
-
 ### Services not starting
 
-Check the service logs in the **Setup** page under Services Health, or view log files directly:
+Check the service logs in the **Setup** page under Services Health, or view log files:
 ```bash
 ls digity-core/logs/
 ```
 
 ### Port 5000 already in use
 
-Set a custom port before starting:
 ```bash
 GLOVE_DASHBOARD_PORT=5001 ./run.sh
 ```
@@ -172,7 +217,9 @@ GLOVE_DASHBOARD_PORT=5001 ./run.sh
 
 ```
 digity-core/
-  main.py                  # Entry point
+  main.py                  # Entry point (--app for desktop window, --web for browser)
+  requirements.txt         # Python dependencies
+  install.sh               # Linux installation script
   app/
     server.py              # Flask + SocketIO — REST API and dashboard server
     station_daemon.py      # UDP coordinator — fans out record start/stop
@@ -182,7 +229,8 @@ digity-core/
       hand_viewer.html     # Real-time hand joint visualization
   core/
     config.py              # Ports, paths, service definitions
-    user_config.py         # User settings (~/.glove/config.json)
+    user_config.py         # User settings
+    platform_helpers.py    # OS-specific paths and port detection (Linux/Windows)
     service_manager.py     # Subprocess lifecycle management
     zmq_publisher.py       # ZMQ XPUB — streams sensor data to Unity / ROS2
     humi_protocol.py       # Binary HUMI sensor protocol parser
@@ -191,22 +239,26 @@ digity-core/
     camera_pov2.py         # RealSense D435i — secondary POV capture
     exo_capture.py         # ESP32 serial capture + raw recorder
   tools/
-    prepare_genesis_dataset.py  # Prepares pix2pix training data from sessions
-  install.sh               # Client installation script
-  requirements.txt         # Python dependencies
+    prepare_genesis_dataset.py   # Prepares pix2pix training data from sessions
+    genesis_remove_glove.py      # SAM2 + LaMa glove removal pipeline
+  build/                   # Windows installer (developers only)
+    build_windows.bat      # Builds the self-contained Windows installer
+    installer.iss          # Inno Setup 6 script
+    launch.bat             # Debug launcher (shows console errors)
+    launch.vbs             # Silent launcher (no console window)
 ```
 
 ---
 
-## Data directory
+## Data directory override
 
-By default, sessions are saved to `/mnt/data/session`. To use a different path:
+Custom data path via environment variable:
 
 ```bash
+# Linux
 GLOVE_DATA_DIR=/path/to/data ./run.sh
-```
 
-Or set it permanently in your shell profile:
-```bash
-echo 'export GLOVE_DATA_DIR=/path/to/data' >> ~/.bashrc
+# Windows (Command Prompt)
+set GLOVE_DATA_DIR=D:\data
+python main.py --app
 ```

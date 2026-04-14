@@ -34,7 +34,8 @@ AllowNoIcons=no
 ; Output
 OutputDir=output
 OutputBaseFilename=DigityCore-Setup-{#AppVersion}
-; SetupIconFile=..\assets\icon.ico   ; uncomment if you have an icon
+SetupIconFile=..\assets\digity.ico
+UninstallDisplayIcon={app}\assets\digity.ico
 
 ; Maximum compression — important given the Python runtime size
 Compression=lzma2/ultra64
@@ -65,6 +66,9 @@ Source: "dist\core\*";      DestDir: "{app}\core";      Flags: ignoreversion rec
 Source: "dist\producer\*";  DestDir: "{app}\producer";  Flags: ignoreversion recursesubdirs
 Source: "dist\tools\*";     DestDir: "{app}\tools";     Flags: ignoreversion recursesubdirs
 
+; App icon
+Source: "..\assets\digity.ico"; DestDir: "{app}\assets"; Flags: ignoreversion
+
 ; Launchers
 Source: "dist\launch.bat";  DestDir: "{app}";           Flags: ignoreversion
 Source: "launch.vbs";       DestDir: "{app}";           Flags: ignoreversion
@@ -89,6 +93,7 @@ Name: "{group}\{#AppName}"; \
     Filename: "{app}\python\pythonw.exe"; \
     Parameters: """{app}\main.py"" --app"; \
     WorkingDir: "{app}"; \
+    IconFilename: "{app}\assets\digity.ico"; \
     Comment: "Open the Digity Core dashboard"
 
 Name: "{group}\Uninstall {#AppName}"; Filename: "{uninstallexe}"
@@ -97,6 +102,7 @@ Name: "{userdesktop}\{#AppName}"; \
     Filename: "{app}\python\pythonw.exe"; \
     Parameters: """{app}\main.py"" --app"; \
     WorkingDir: "{app}"; \
+    IconFilename: "{app}\assets\digity.ico"; \
     Tasks: desktopicon; Comment: "Open the Digity Core dashboard"
 
 ; ── Post-install actions ──────────────────────────────────────────────────────
