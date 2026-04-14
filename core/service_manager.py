@@ -73,11 +73,17 @@ class ManagedService:
                 except Exception:
                     pass
             self._log_fh = open(self._log_path, "a", encoding="utf-8")
+            import os as _os
+            _env = _os.environ.copy()
+            _env["PYTHONUTF8"]       = "1"
+            _env["PYTHONIOENCODING"] = "utf-8"
             self._proc = subprocess.Popen(
                 cmd,
                 stdout=self._log_fh,
                 stderr=self._log_fh,
                 text=True,
+                encoding="utf-8",
+                env=_env,
             )
             self.pid        = self._proc.pid
             self.started_at = time.time()

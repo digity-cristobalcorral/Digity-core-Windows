@@ -19,6 +19,11 @@ import time
 import webbrowser
 from pathlib import Path
 
+# ── Windows: force UTF-8 for all I/O (emojis in print() crash on CP1252) ─────
+import os as _os
+_os.environ["PYTHONUTF8"]        = "1"
+_os.environ["PYTHONIOENCODING"]  = "utf-8"
+
 # ── Windows pythonw.exe: stdout/stderr are None (no console window) ──────────
 # Redirect to a log file so nothing crashes and all errors are captured.
 if sys.stdout is None:
