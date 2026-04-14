@@ -25,10 +25,10 @@ AppPublisher={#AppPublisher}
 AppPublisherURL={#AppURL}
 AppSupportURL={#AppURL}
 
-; Install to Program Files by default; allow per-user install too
-DefaultDirName={autopf}\DigityCore
+; Install per-user — no admin rights needed
+DefaultDirName={localappdata}\DigityCore
 DefaultGroupName={#AppName}
-PrivilegesRequiredOverridesAllowed=dialog
+PrivilegesRequired=lowest
 AllowNoIcons=no
 
 ; Output
